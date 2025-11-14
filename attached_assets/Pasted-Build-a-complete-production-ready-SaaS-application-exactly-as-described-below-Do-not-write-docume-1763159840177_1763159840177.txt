@@ -1,0 +1,190 @@
+Build a complete, production-ready SaaS application exactly as described below.
+Do not write documentation, explanations, or thesis-style text — deliver only the full working codebase with a clean, professional project structure.
+
+⚙️ Tech Stack Requirements
+
+Use ONLY the following stack:
+
+Next.js (latest) — frontend + backend API routes
+
+TypeScript
+
+Tailwind CSS
+
+Prisma ORM
+
+PostgreSQL database
+
+NextAuth for authentication
+
+Google OAuth
+
+Outlook / Microsoft OAuth
+
+OpenAI API (for resume scoring and ranking)
+
+Email APIs:
+
+Gmail API
+
+Microsoft Graph API (Outlook)
+
+📌 Core Features to Implement
+1. Authentication
+
+Using NextAuth, implement:
+
+Login with Google
+
+Login with Microsoft Outlook
+
+Store users in the database
+
+Protect all internal routes behind authentication
+
+2. Fetching CVs From Email Inbox
+
+Create backend API routes + background jobs that:
+
+Connect to the logged-in user’s Gmail OR Outlook inbox
+
+Search for emails containing CV/resume attachments
+
+Supported formats:
+
+PDF
+
+DOC
+
+DOCX
+
+Download attachments
+
+Extract text using libraries (pdf-parse, docx-parser, etc.)
+
+Save extracted CV data + metadata in PostgreSQL
+
+3. Resume Scoring & Ranking
+
+User submits a job prompt.
+
+System must:
+
+Process all stored CVs
+
+Use OpenAI embeddings or GPT scoring model
+
+Score each resume 0–100
+
+Rank resumes best → worst
+
+Save scores + highlights + weaknesses in DB
+
+Each ranked resume entry should include:
+
+Candidate name
+
+Score
+
+Strengths
+
+Weaknesses
+
+Download original CV
+
+View extracted text
+
+4. Dashboard UI/UX (Professional Quality)
+
+Build a polished, modern interface with:
+
+Pages:
+
+Login page
+
+Dashboard
+
+“Fetch CVs from Email” page
+
+“Rank Resumes” page
+
+“Results” page
+
+UI Requirements:
+
+Professional layout
+
+Clean spacing
+
+Responsive design
+
+Smooth animations
+
+Light/Dark mode
+
+Modern tables and cards
+
+Intuitive UX flow
+
+🎯 Output Requirements
+
+Deliver:
+
+A complete working Next.js SaaS application
+
+Full backend + full frontend
+
+Fully wired authentication
+
+Email fetching working
+
+CV ranking system working
+
+Professional UI/UX
+
+Clean, maintainable folder structure
+
+No documentation
+
+No long explanations
+
+Just the final working code and project files
+
+🚀 Deployment Requirements
+Vercel Deployment
+
+Should deploy without errors
+
+Use environment variables for:
+
+DATABASE_URL
+
+NEXTAUTH_SECRET
+
+GOOGLE_CLIENT_ID
+
+GOOGLE_CLIENT_SECRET
+
+MICROSOFT_CLIENT_ID
+
+MICROSOFT_CLIENT_SECRET
+
+OPENAI_API_KEY
+
+GMAIL_API_KEYS
+
+MICROSOFT_GRAPH_KEYS
+
+Database
+
+Use NeonDB or Supabase PostgreSQL
+
+📜 Additional Notes
+
+Project must be fully functional with zero manual edits
+
+Must have a clean production file structure
+
+Must use only the technologies listed
+
+No documentation, no theory — deliver only the finished application
