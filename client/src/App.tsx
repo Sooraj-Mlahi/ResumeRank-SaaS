@@ -12,6 +12,7 @@ import FetchCVs from "@/pages/fetch-cvs";
 import RankResumes from "@/pages/rank-resumes";
 import Results from "@/pages/results";
 import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
 
 interface User {
   id: string;
@@ -27,22 +28,22 @@ function AuthenticatedRoutes() {
     retry: false,
   });
 
+  useEffect(() => {
+    if (!isLoading) {
+      if (!user && location !== "/login") {
+        setLocation("/login");
+      } else if (user && location === "/login") {
+        setLocation("/");
+      }
+    }
+  }, [user, isLoading, location, setLocation]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" data-testid="loader-auth" />
       </div>
     );
-  }
-
-  if (!user && location !== "/login") {
-    setLocation("/login");
-    return null;
-  }
-
-  if (user && location === "/login") {
-    setLocation("/");
-    return null;
   }
 
   return (
