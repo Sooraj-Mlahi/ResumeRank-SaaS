@@ -1,28 +1,74 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Header } from "@/components/header";
 import NotFound from "@/pages/not-found";
+import Login from "@/pages/login";
+import Dashboard from "@/pages/dashboard";
+import FetchCVs from "@/pages/fetch-cvs";
+import RankResumes from "@/pages/rank-resumes";
+import Results from "@/pages/results";
+import { Loader2 } from "lucide-react";
 
-function Router() {
+interface User {
+  id: string;
+  email: string;
+  name?: string;
+  provider: string;
+}
+
+function AuthenticatedRoutes() {
+  const [location, setLocation] = useLocation();
+  const { data: user, isLoading } = useQuery<User | null>({
+    queryKey: ["/api/auth/me"],
+    retry: false,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" data-testid="loader-auth" />
+      </div>
+    );
+  }
+
+  if (!user && location !== "/login") {
+    setLocation("/login");
+    return null;
+  }
+
+  if (user && location === "/login") {
+    setLocation("/");
+    return null;
+  }
+
   return (
-    <Switch>
-      {/* Add pages below */}
-      {/* <Route path="/" component={Home}/> */}
-      {/* Fallback to 404 */}
-      <Route component={NotFound} />
-    </Switch>
+    <div className="min-h-screen bg-background">
+      {user && <Header user={user} />}
+      <Switch>
+        <Route path="/login" component={Login} />
+        <Route path="/" component={Dashboard} />
+        <Route path="/fetch" component={FetchCVs} />
+        <Route path="/rank" component={RankResumes} />
+        <Route path="/results" component={Results} />
+        <Route component={NotFound} />
+      </Switch>
+    </div>
   );
 }
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <ThemeProvider defaultTheme="light">
+        <TooltipProvider>
+          <AuthenticatedRoutes />
+          <Toaster />
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
