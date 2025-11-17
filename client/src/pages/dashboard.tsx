@@ -94,7 +94,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold" data-testid="text-highest-score">
-              {stats?.highestScore !== null ? `${stats.highestScore}/100` : "N/A"}
+              {stats && stats.highestScore !== null ? `${stats.highestScore}/100` : "N/A"}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Best candidate match

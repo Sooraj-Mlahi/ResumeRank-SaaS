@@ -1,9 +1,13 @@
-import * as pdfParse from "pdf-parse";
 import mammoth from "mammoth";
 
 export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   try {
-    const data = await (pdfParse as any)(buffer);
+    // Use createRequire to import pdf-parse as CommonJS module to avoid debug mode issues
+    const { createRequire } = await import('module');
+    const require = createRequire(import.meta.url);
+    const pdfParse = require('pdf-parse');
+    
+    const data = await pdfParse(buffer);
     return data.text.trim();
   } catch (error) {
     console.error("PDF extraction error:", error);

@@ -4,6 +4,16 @@ import { google } from 'googleapis';
 let connectionSettings: any;
 
 async function getAccessToken() {
+  // Try Replit connectors first (for Replit environment)
+  if (process.env.REPLIT_CONNECTORS_HOSTNAME) {
+    return getAccessTokenFromReplit();
+  }
+  
+  // Fallback to standard OAuth (for local development)
+  return getAccessTokenFromOAuth();
+}
+
+async function getAccessTokenFromReplit() {
   if (connectionSettings && connectionSettings.settings.expires_at && new Date(connectionSettings.settings.expires_at).getTime() > Date.now()) {
     return connectionSettings.settings.access_token;
   }
@@ -32,9 +42,27 @@ async function getAccessToken() {
   const accessToken = connectionSettings?.settings?.access_token || connectionSettings.settings?.oauth?.credentials?.access_token;
 
   if (!connectionSettings || !accessToken) {
-    throw new Error('Gmail not connected');
+    throw new Error('Gmail not connected via Replit connectors');
   }
   return accessToken;
+}
+
+async function getAccessTokenFromOAuth() {
+  // For local development with standard OAuth
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    throw new Error('Gmail OAuth not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env file');
+  }
+  
+  // Use the Gmail OAuth module to get authenticated client
+  const { getAuthenticatedGmailClient } = await import('./gmail-oauth.js');
+  try {
+    const gmail = await getAuthenticatedGmailClient();
+    // Extract access token from the authenticated client
+    const auth = gmail.context._options.auth;
+    return auth.credentials.access_token;
+  } catch (error) {
+    throw new Error('Gmail OAuth authentication failed. Run Gmail OAuth setup first.');
+  }
 }
 
 // WARNING: Never cache this client.

@@ -283,8 +283,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           resumeId: scores[i].resumeId,
           score: scores[i].score,
           rank: i + 1,
-          strengths: scores[i].strengths,
-          weaknesses: scores[i].weaknesses,
+          strengths: Array.isArray(scores[i].strengths) ? scores[i].strengths : [],
+          weaknesses: Array.isArray(scores[i].weaknesses) ? scores[i].weaknesses : [],
           summary: scores[i].summary,
         });
       }
