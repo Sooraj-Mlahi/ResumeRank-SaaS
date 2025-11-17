@@ -21,25 +21,19 @@ export async function scoreResume(
 ): Promise<ResumeScore> {
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-5",
+      model: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
-          content: `You are an expert HR recruiter analyzing resumes. Score each resume from 0-100 based on how well it matches the job requirements. Provide:
-1. A numerical score (0-100)
-2. 3-5 key strengths
-3. 3-5 key weaknesses or gaps
-4. A brief summary (2-3 sentences)
-
-Respond with JSON in this format: { "score": number, "strengths": string[], "weaknesses": string[], "summary": string }`,
+          content: `You are an expert HR recruiter. Score resumes 0-100 vs job requirements. Return JSON: {"score": number, "strengths": ["str1"], "weaknesses": ["weak1"], "summary": "brief"}`,
         },
         {
           role: "user",
-          content: `Job Requirements:\n${jobPrompt}\n\nResume:\n${resumeText}\n\nAnalyze this resume and provide the scoring.`,
+          content: `Job: ${jobPrompt.slice(0, 500)}\n\nResume: ${resumeText.slice(0, 2000)}\n\nScore this resume.`,
         },
       ],
       response_format: { type: "json_object" },
-      max_completion_tokens: 2048,
+      max_completion_tokens: 1024,
     });
 
     const result = JSON.parse(response.choices[0].message.content || "{}");
@@ -63,7 +57,7 @@ export async function extractCandidateInfo(resumeText: string): Promise<{
 }> {
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-5",
+      model: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",

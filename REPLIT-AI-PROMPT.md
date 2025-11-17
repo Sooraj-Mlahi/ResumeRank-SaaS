@@ -47,14 +47,14 @@ email_connections (id, userId, provider, isActive, lastFetchedAt, createdAt)
 ### **Environment Configuration (WORKING):**
 ```env
 # Database - CONFIGURED AND WORKING
-DATABASE_URL=postgresql://username:password@host.neon.tech/database?sslmode=require
+DATABASE_URL=your-neon-database-url-here
 
 # OpenAI API - CONFIGURED AND WORKING
-OPENAI_API_KEY=sk-proj-your-openai-api-key-here
+OPENAI_API_KEY=your-openai-api-key-here
 
 # Gmail API - CONFIGURED AND WORKING
-GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=GOCSPX-your-google-client-secret
+GOOGLE_CLIENT_ID=your-google-client-id-here
+GOOGLE_CLIENT_SECRET=your-google-client-secret-here
 ```
 
 ## ⚠️ **CURRENT ISSUES NEEDING FIXES**
@@ -342,10 +342,10 @@ app.post("/api/auth/signup", async (req, res) => {
 
 ### **Environment Variables Needed for Replit:**
 ```env
-DATABASE_URL=postgresql://username:password@host.neon.tech/database?sslmode=require
-OPENAI_API_KEY=sk-proj-your-openai-api-key-here
-GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=GOCSPX-your-google-client-secret
+DATABASE_URL=your-neon-database-url-here
+OPENAI_API_KEY=your-openai-api-key-here
+GOOGLE_CLIENT_ID=your-google-client-id-here
+GOOGLE_CLIENT_SECRET=your-google-client-secret-here
 SESSION_SECRET=your-production-session-secret-here
 NODE_ENV=production
 ```

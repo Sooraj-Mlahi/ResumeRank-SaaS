@@ -16,10 +16,19 @@ function createOAuth2Client() {
     throw new Error('Gmail OAuth not configured. Missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET');
   }
 
+  // Use environment-specific redirect URI based on google-credentials.json
+  // The google-credentials.json shows redirect_uris: ["http://localhost"]
+  // We need to add the port and callback path
+  const redirectUri = process.env.NODE_ENV === 'production'
+    ? `${process.env.PRODUCTION_URL}/api/auth/google/callback`
+    : 'http://localhost:5000/api/auth/google/callback';
+    
+  console.log('📧 Gmail OAuth redirect URI:', redirectUri);
+
   return new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    'http://localhost:5000/api/auth/gmail/callback' // Redirect URI
+    redirectUri
   );
 }
 
@@ -30,7 +39,10 @@ export function getGmailAuthUrl() {
   return oAuth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: SCOPES,
-    prompt: 'consent' // Force refresh token
+    prompt: 'select_account consent', // Show account selection and force consent
+    include_granted_scopes: true,
+    state: Math.random().toString(36).substring(7), // Add state for security
+    // Remove approval_prompt as it conflicts with prompt parameter
   });
 }
 
@@ -125,4 +137,18 @@ export async function testGmailConnection() {
       error: errorMessage
     };
   }
+}
+
+// Get Gmail user info with provided tokens
+export async function getGmailUserInfo(tokens: any) {
+  const oAuth2Client = createOAuth2Client();
+  oAuth2Client.setCredentials(tokens);
+  
+  const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
+  const response = await gmail.users.getProfile({ userId: 'me' });
+  
+  return {
+    email: response.data.emailAddress,
+    name: response.data.emailAddress?.split('@')[0], // Use part before @ as name
+  };
 }

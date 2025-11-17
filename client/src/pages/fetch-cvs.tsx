@@ -45,18 +45,27 @@ export default function FetchCVs() {
   });
 
   const connectGmailMutation = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/email/connect/gmail", {}),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/email/connections"] });
-      toast({
-        title: "Gmail Connected",
-        description: "Successfully connected to your Gmail account",
+    mutationFn: async () => {
+      const response = await fetch("/api/email/connect/gmail", {
+        method: "POST",
+        credentials: "include",
       });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to connect to Gmail");
+      }
+
+      const data = await response.json();
+      
+      if (data.authUrl) {
+        window.location.href = data.authUrl;
+      }
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         title: "Connection Failed",
-        description: "Failed to connect to Gmail. Please try again.",
+        description: error.message || "Failed to connect to Gmail. Please try again.",
         variant: "destructive",
       });
     },
@@ -83,9 +92,62 @@ export default function FetchCVs() {
     },
   });
 
+  const connectOutlookMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/email/connect/outlook", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to connect to Outlook");
+      }
+
+      const data = await response.json();
+      
+      if (data.authUrl) {
+        window.location.href = data.authUrl;
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Connection Failed",
+        description: error.message || "Failed to connect to Outlook. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const fetchOutlookMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/email/fetch/outlook", {}),
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/email/fetch-history"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+      toast({
+        title: "CVs Fetched Successfully",
+        description: `Found ${data.count} resume(s) from Outlook`,
+      });
+      setIsFetching(false);
+    },
+    onError: () => {
+      toast({
+        title: "Fetch Failed",
+        description: "Failed to fetch CVs from Outlook. Please try again.",
+        variant: "destructive",
+      });
+      setIsFetching(false);
+    },
+  });
+
   const handleFetchGmail = async () => {
     setIsFetching(true);
     fetchGmailMutation.mutate();
+  };
+
+  const handleFetchOutlook = async () => {
+    setIsFetching(true);
+    fetchOutlookMutation.mutate();
   };
 
   const gmailConnection = connections?.find((c) => c.provider === "gmail");
@@ -219,16 +281,55 @@ export default function FetchCVs() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="bg-muted p-4 rounded-md">
-              <p className="text-sm text-muted-foreground">
-                Microsoft Outlook integration requires manual API key setup. Contact support for configuration instructions.
-              </p>
-            </div>
-            <Button variant="secondary" disabled className="w-full" data-testid="button-outlook-disabled">
-              Coming Soon
-            </Button>
+            {outlookConnection?.isActive ? (
+              <>
+                {outlookConnection.lastFetchedAt && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Calendar className="w-4 h-4" />
+                    Last fetched: {format(new Date(outlookConnection.lastFetchedAt), "PPp")}
+                  </div>
+                )}
+                <Button
+                  onClick={handleFetchOutlook}
+                  disabled={isFetching}
+                  className="w-full"
+                  data-testid="button-fetch-outlook"
+                >
+                  {isFetching ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Fetching CVs...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4 mr-2" />
+                      Fetch CVs from Outlook
+                    </>
+                  )}
+                </Button>
+              </>
+            ) : (
+              <Button
+                onClick={() => connectOutlookMutation.mutate()}
+                disabled={connectOutlookMutation.isPending}
+                className="w-full"
+                data-testid="button-connect-outlook"
+              >
+                {connectOutlookMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Connecting...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="w-4 h-4 mr-2" />
+                    Connect Outlook Account
+                  </>
+                )}
+              </Button>
+            )}
             <p className="text-xs text-muted-foreground">
-              Manual configuration available with Microsoft Graph API credentials
+              We'll search for emails with resume attachments (PDF, DOC, DOCX)
             </p>
           </CardContent>
         </Card>

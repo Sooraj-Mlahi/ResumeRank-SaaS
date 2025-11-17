@@ -4,6 +4,9 @@ import {
   analyses, 
   analysisResults, 
   emailConnections,
+  fetchHistory,
+  userActivities,
+  userSettings,
   type User, 
   type InsertUser,
   type Resume,
@@ -14,10 +17,16 @@ import {
   type InsertAnalysisResult,
   type EmailConnection,
   type InsertEmailConnection,
+  type FetchHistory,
+  type InsertFetchHistory,
+  type UserActivity,
+  type InsertUserActivity,
+  type UserSettings,
+  type InsertUserSettings,
   type AnalysisWithResults,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -47,11 +56,28 @@ export interface IStorage {
   createEmailConnection(connection: InsertEmailConnection): Promise<EmailConnection>;
   updateEmailConnection(id: string, lastFetchedAt: Date): Promise<void>;
   
+  // Fetch history operations
+  createFetchHistory(fetchHistory: InsertFetchHistory): Promise<FetchHistory>;
+  getUserFetchHistory(userId: string, limit?: number): Promise<FetchHistory[]>;
+  getLatestFetchHistory(userId: string, provider: string): Promise<FetchHistory | undefined>;
+  
+  // User activity operations
+  createUserActivity(activity: InsertUserActivity): Promise<UserActivity>;
+  getUserActivities(userId: string, limit?: number): Promise<UserActivity[]>;
+  
+  // User settings operations
+  getUserSettings(userId: string): Promise<UserSettings | undefined>;
+  createUserSettings(settings: InsertUserSettings): Promise<UserSettings>;
+  updateUserSettings(userId: string, updates: Partial<InsertUserSettings>): Promise<void>;
+  
   // Dashboard stats
   getDashboardStats(userId: string): Promise<{
     totalResumes: number;
     lastAnalysisDate: string | null;
     highestScore: number | null;
+    totalAnalyses: number;
+    lastFetchDate: string | null;
+    connectedProviders: string[];
   }>;
 }
 
@@ -94,8 +120,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getResumeCount(userId: string): Promise<number> {
-    const result = await db.select().from(resumes).where(eq(resumes.userId, userId));
-    return result.length;
+    // Use SQL COUNT for efficiency instead of fetching all records
+    const [result] = await db
+      .select({ count: sql`count(*)` })
+      .from(resumes)
+      .where(eq(resumes.userId, userId));
+    
+    return Number(result.count);
   }
 
   async createResume(insertResume: InsertResume): Promise<Resume> {
@@ -146,23 +177,40 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAnalysisResults(analysisId: string): Promise<(AnalysisResult & { resume: Resume })[]> {
+    // Use JOIN to get analysis results with resumes in a single query
     const results = await db
-      .select()
+      .select({
+        id: analysisResults.id,
+        analysisId: analysisResults.analysisId,
+        resumeId: analysisResults.resumeId,
+        score: analysisResults.score,
+        rank: analysisResults.rank,
+        strengths: analysisResults.strengths,
+        weaknesses: analysisResults.weaknesses,
+        summary: analysisResults.summary,
+        resume: {
+          id: resumes.id,
+          userId: resumes.userId,
+          candidateName: resumes.candidateName,
+          email: resumes.email,
+          phone: resumes.phone,
+          extractedText: resumes.extractedText,
+          originalFileName: resumes.originalFileName,
+          fileData: resumes.fileData,
+          fileType: resumes.fileType,
+          source: resumes.source,
+          fetchedAt: resumes.fetchedAt,
+        }
+      })
       .from(analysisResults)
+      .innerJoin(resumes, eq(analysisResults.resumeId, resumes.id))
       .where(eq(analysisResults.analysisId, analysisId))
       .orderBy(analysisResults.rank);
 
-    const resultsWithResumes = await Promise.all(
-      results.map(async (result) => {
-        const resume = await this.getResume(result.resumeId);
-        return {
-          ...result,
-          resume: resume!,
-        };
-      })
-    );
-
-    return resultsWithResumes;
+    return results.map(result => ({
+      ...result,
+      resume: result.resume as Resume
+    }));
   }
 
   async getEmailConnection(userId: string, provider: string): Promise<EmailConnection | undefined> {
@@ -204,35 +252,143 @@ export class DatabaseStorage implements IStorage {
     totalResumes: number;
     lastAnalysisDate: string | null;
     highestScore: number | null;
+    totalAnalyses: number;
+    lastFetchDate: string | null;
+    connectedProviders: string[];
   }> {
-    const resumeCount = await this.getResumeCount(userId);
-    
-    const [latestAnalysis] = await db
-      .select()
+    // Use Promise.all to run multiple optimized queries in parallel
+    const [
+      resumeStats,
+      analysisStats,
+      latestFetch,
+      connections
+    ] = await Promise.all([
+      // Resume count with single query
+      db.select({ count: resumes.id })
+        .from(resumes)
+        .where(eq(resumes.userId, userId)),
+      
+      // Latest analysis and count in single query
+      db.select({
+        id: analyses.id,
+        createdAt: analyses.createdAt
+      })
       .from(analyses)
       .where(eq(analyses.userId, userId))
-      .orderBy(desc(analyses.createdAt))
-      .limit(1);
+      .orderBy(desc(analyses.createdAt)),
+      
+      // Latest fetch history
+      db.select()
+        .from(fetchHistory)
+        .where(eq(fetchHistory.userId, userId))
+        .orderBy(desc(fetchHistory.createdAt))
+        .limit(1),
+      
+      // Connected providers
+      db.select({ provider: emailConnections.provider })
+        .from(emailConnections)
+        .where(and(
+          eq(emailConnections.userId, userId), 
+          eq(emailConnections.isActive, 1)
+        ))
+    ]);
 
     let highestScore: number | null = null;
+    const latestAnalysis = analysisStats[0];
+
     if (latestAnalysis) {
-      const results = await db
-        .select()
+      // Get highest score for latest analysis
+      const [scoreResult] = await db
+        .select({ score: analysisResults.score })
         .from(analysisResults)
         .where(eq(analysisResults.analysisId, latestAnalysis.id))
         .orderBy(desc(analysisResults.score))
         .limit(1);
       
-      if (results.length > 0) {
-        highestScore = results[0].score;
-      }
+      highestScore = scoreResult?.score || null;
     }
 
     return {
-      totalResumes: resumeCount,
+      totalResumes: resumeStats.length,
       lastAnalysisDate: latestAnalysis ? latestAnalysis.createdAt.toISOString() : null,
       highestScore,
+      totalAnalyses: analysisStats.length,
+      lastFetchDate: latestFetch[0] ? latestFetch[0].createdAt.toISOString() : null,
+      connectedProviders: connections.map(c => c.provider),
     };
+  }
+
+  // Fetch History methods
+  async createFetchHistory(insertFetchHistory: InsertFetchHistory): Promise<FetchHistory> {
+    const [fetchHistoryRecord] = await db
+      .insert(fetchHistory)
+      .values(insertFetchHistory)
+      .returning();
+    return fetchHistoryRecord;
+  }
+
+  async getUserFetchHistory(userId: string, limit: number = 50): Promise<FetchHistory[]> {
+    return await db
+      .select()
+      .from(fetchHistory)
+      .where(eq(fetchHistory.userId, userId))
+      .orderBy(desc(fetchHistory.createdAt))
+      .limit(limit);
+  }
+
+  async getLatestFetchHistory(userId: string, provider: string): Promise<FetchHistory | undefined> {
+    const [latest] = await db
+      .select()
+      .from(fetchHistory)
+      .where(and(
+        eq(fetchHistory.userId, userId),
+        eq(fetchHistory.provider, provider)
+      ))
+      .orderBy(desc(fetchHistory.createdAt))
+      .limit(1);
+    return latest || undefined;
+  }
+
+  // User Activity methods
+  async createUserActivity(insertActivity: InsertUserActivity): Promise<UserActivity> {
+    const [activity] = await db
+      .insert(userActivities)
+      .values(insertActivity)
+      .returning();
+    return activity;
+  }
+
+  async getUserActivities(userId: string, limit: number = 100): Promise<UserActivity[]> {
+    return await db
+      .select()
+      .from(userActivities)
+      .where(eq(userActivities.userId, userId))
+      .orderBy(desc(userActivities.createdAt))
+      .limit(limit);
+  }
+
+  // User Settings methods
+  async getUserSettings(userId: string): Promise<UserSettings | undefined> {
+    const [settings] = await db
+      .select()
+      .from(userSettings)
+      .where(eq(userSettings.userId, userId));
+    return settings || undefined;
+  }
+
+  async createUserSettings(insertSettings: InsertUserSettings): Promise<UserSettings> {
+    const [settings] = await db
+      .insert(userSettings)
+      .values(insertSettings)
+      .returning();
+    return settings;
+  }
+
+  async updateUserSettings(userId: string, updates: Partial<InsertUserSettings>): Promise<void> {
+    await db
+      .update(userSettings)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(userSettings.userId, userId));
   }
 }
 
