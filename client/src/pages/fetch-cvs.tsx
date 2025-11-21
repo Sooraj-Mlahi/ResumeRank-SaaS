@@ -422,10 +422,6 @@ export default function FetchCVs() {
         </Card>
       </div>
 
-      <div className="bg-red-500 text-white p-4 mb-4 text-center font-bold">
-        TEST: If you see this, the file is loading! Upload section should be below.
-      </div>
-
       {/* Upload Section */}
       <Card className="mb-8">
         <CardHeader>

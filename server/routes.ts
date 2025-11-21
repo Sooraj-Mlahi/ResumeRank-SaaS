@@ -298,19 +298,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard stats - OPTIMIZED for performance
   app.get("/api/dashboard/stats", requireAuth, async (req, res) => {
     try {
-      // Direct query - much faster than storage methods
-      const [statsResult] = await db
+      // Get resume stats
+      const [resumeStats] = await db
         .select({
-          totalResumes: sql<number>`count(*)::int`,
-          lastAnalysisDate: sql<string>`max(${analyses.createdAt})::text`
+          totalResumes: sql<number>`count(*)::int`
         })
         .from(resumes)
-        .leftJoin(analyses, eq(analyses.userId, req.session.userId!))
         .where(eq(resumes.userId, req.session.userId!));
       
+      // Get analysis stats including highest score
+      const [analysisStats] = await db
+        .select({
+          lastAnalysisDate: sql<string>`max(${analyses.createdAt})::text`,
+          highestScore: sql<number>`max(${analysisResults.score})::int`
+        })
+        .from(analyses)
+        .leftJoin(analysisResults, eq(analysisResults.analysisId, analyses.id))
+        .where(eq(analyses.userId, req.session.userId!));
+      
       const stats = {
-        totalResumes: statsResult?.totalResumes || 0,
-        lastAnalysisDate: statsResult?.lastAnalysisDate || null
+        totalResumes: resumeStats?.totalResumes || 0,
+        lastAnalysisDate: analysisStats?.lastAnalysisDate || null,
+        highestScore: analysisStats?.highestScore || null
       };
       
       // Mock recent activity for demo

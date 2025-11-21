@@ -1,5 +1,6 @@
 // Gmail integration using google-mail blueprint
 import { google } from 'googleapis';
+import { extractCandidateInfo } from './openai';
 
 let connectionSettings: any;
 
