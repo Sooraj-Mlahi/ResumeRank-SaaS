@@ -166,7 +166,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/auth/google", (req, res) => {
     try {
-      const authUrl = getGmailAuthUrl();
+      // Build base URL from request to support both localhost and Replit domains
+      const protocol = req.protocol || 'http';
+      const host = req.get('host') || 'localhost:5000';
+      const baseUrl = `${protocol}://${host}`;
+      
+      const authUrl = getGmailAuthUrl(baseUrl);
       res.redirect(authUrl);
     } catch (error) {
       console.error("Gmail auth error:", error);
@@ -191,7 +196,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       console.log("🔄 Exchanging code for Gmail tokens...");
-      // Exchange code for access token
+      // Exchange code for access token using the proper redirect URI from request
       const tokens = await exchangeCodeForTokens(code);
       console.log("✅ Gmail tokens received");
       
@@ -200,17 +205,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userInfo = await getGmailUserInfo(tokens);
       console.log("✅ Gmail user info:", userInfo);
       
-      req.session.email = userInfo.email || undefined;
+      // Create or get user
+      let user = await storage.getUserByEmail(userInfo.email);
+      if (!user) {
+        user = await storage.createUser({
+          email: userInfo.email,
+          name: userInfo.name,
+          provider: "google",
+          providerId: userInfo.email,
+        });
+      }
+      
+      req.session.userId = user.id;
+      req.session.email = userInfo.email;
       req.session.name = userInfo.name;
       req.session.provider = "google";
       req.session.gmailTokens = tokens;
       
       console.log("✅ Gmail session set:", {
+        userId: req.session.userId,
         email: req.session.email,
         provider: req.session.provider
       });
       
-      res.redirect("/api/auth/callback");
+      res.redirect("/");
     } catch (error) {
       console.error("Gmail callback error:", error);
       res.redirect("/login?error=callback_failed");

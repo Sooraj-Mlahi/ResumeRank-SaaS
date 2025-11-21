@@ -11,17 +11,25 @@ const TOKEN_PATH = 'gmail-token.json';
 const CREDENTIALS_PATH = 'google-credentials.json';
 
 // Create OAuth2 client
-function createOAuth2Client() {
+function createOAuth2Client(baseUrl?: string) {
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
     throw new Error('Gmail OAuth not configured. Missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET');
   }
 
-  // Use environment-specific redirect URI based on google-credentials.json
-  // The google-credentials.json shows redirect_uris: ["http://localhost"]
-  // We need to add the port and callback path
-  const redirectUri = process.env.NODE_ENV === 'production'
-    ? `${process.env.PRODUCTION_URL}/api/auth/callback/google`
-    : 'http://localhost:5000/api/auth/callback/google';
+  // Use provided baseUrl or determine from environment
+  let redirectUri: string;
+  
+  if (baseUrl) {
+    redirectUri = `${baseUrl}/api/auth/callback/google`;
+  } else if (process.env.PRODUCTION_URL) {
+    redirectUri = `${process.env.PRODUCTION_URL}/api/auth/callback/google`;
+  } else if (process.env.NODE_ENV === 'production') {
+    // Fallback for production without explicit PRODUCTION_URL
+    redirectUri = 'https://your-replit-domain.replit.dev/api/auth/callback/google';
+  } else {
+    // Development default
+    redirectUri = 'http://localhost:5000/api/auth/callback/google';
+  }
     
   console.log('📧 Gmail OAuth redirect URI:', redirectUri);
 
@@ -33,8 +41,8 @@ function createOAuth2Client() {
 }
 
 // Generate authorization URL
-export function getGmailAuthUrl() {
-  const oAuth2Client = createOAuth2Client();
+export function getGmailAuthUrl(baseUrl?: string) {
+  const oAuth2Client = createOAuth2Client(baseUrl);
   
   return oAuth2Client.generateAuthUrl({
     access_type: 'offline',
