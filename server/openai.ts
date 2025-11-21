@@ -54,23 +54,23 @@ export async function scoreResume(
       messages: [
         {
           role: "system",
-          content: `You are an expert HR recruiter. Score resumes 0-100 vs job requirements. Return JSON: {"score": number, "strengths": ["str1"], "weaknesses": ["weak1"], "summary": "brief"}`,
+          content: `Score resume vs job fit 0-100. JSON: {"score":N,"strengths":["s1","s2"],"weaknesses":["w1","w2"],"summary":"brief"}`,
         },
         {
           role: "user",
-          content: `Job: ${jobPrompt.slice(0, 500)}\n\nResume: ${resumeText.slice(0, 2000)}\n\nScore this resume.`,
+          content: `Job:${jobPrompt.slice(0, 300)}\nResume:${resumeText.slice(0, 1500)}\nScore:`,
         },
       ],
       response_format: { type: "json_object" },
-      max_completion_tokens: 1024,
+      max_completion_tokens: 250,
     });
 
     const result = JSON.parse(response.choices[0].message.content || "{}");
 
     return {
       score: Math.max(0, Math.min(100, Math.round(result.score || 0))),
-      strengths: Array.isArray(result.strengths) ? result.strengths : [],
-      weaknesses: Array.isArray(result.weaknesses) ? result.weaknesses : [],
+      strengths: (Array.isArray(result.strengths) ? result.strengths : []).slice(0, 3),
+      weaknesses: (Array.isArray(result.weaknesses) ? result.weaknesses : []).slice(0, 3),
       summary: result.summary || "No summary available",
     };
   } catch (error) {
@@ -98,15 +98,15 @@ export async function extractCandidateInfo(resumeText: string): Promise<{
       messages: [
         {
           role: "system",
-          content: `Extract the candidate's name, email, and phone number from the resume text. Respond with JSON: { "name": string, "email": string | null, "phone": string | null }`,
+          content: `Extract:{"name":"X","email":"X@X.com or null","phone":"XXX or null"}`,
         },
         {
           role: "user",
-          content: resumeText,
+          content: resumeText.slice(0, 1000),
         },
       ],
       response_format: { type: "json_object" },
-      max_completion_tokens: 500,
+      max_completion_tokens: 150,
     });
 
     const result = JSON.parse(response.choices[0].message.content || "{}");
