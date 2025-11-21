@@ -83,7 +83,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.session.userId = "test-user-" + Date.now();
       try {
         await storage.createUser({
-          id: req.session.userId,
           email: "test-" + req.session.userId + "@example.com",
           provider: "test",
           providerId: req.session.userId,
@@ -165,7 +164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userInfo = await getGmailUserInfo(tokens);
       console.log("✅ Gmail user info:", userInfo);
       
-      req.session.email = userInfo.email;
+      req.session.email = userInfo.email || undefined;
       req.session.name = userInfo.name;
       req.session.provider = "google";
       req.session.gmailTokens = tokens;
