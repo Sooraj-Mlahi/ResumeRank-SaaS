@@ -20,8 +20,8 @@ function createOAuth2Client() {
   // The google-credentials.json shows redirect_uris: ["http://localhost"]
   // We need to add the port and callback path
   const redirectUri = process.env.NODE_ENV === 'production'
-    ? `${process.env.PRODUCTION_URL}/api/auth/google/callback`
-    : 'http://localhost:5000/api/auth/google/callback';
+    ? `${process.env.PRODUCTION_URL}/api/auth/callback/google`
+    : 'http://localhost:5000/api/auth/callback/google';
     
   console.log('📧 Gmail OAuth redirect URI:', redirectUri);
 

@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Mail, CheckCircle, XCircle, Loader2, Download, Calendar, Building2 } from "lucide-react";
+import { Mail, CheckCircle, XCircle, Loader2, Download, Calendar, Building2, Upload, FileUp } from "lucide-react";
 import { SiGoogle } from "react-icons/si";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -35,6 +35,9 @@ interface FetchHistory {
 export default function FetchCVs() {
   const { toast } = useToast();
   const [isFetching, setIsFetching] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: connections, isLoading: connectionsLoading } = useQuery<EmailConnection[]>({
     queryKey: ["/api/email/connections"],
@@ -150,6 +153,90 @@ export default function FetchCVs() {
     fetchOutlookMutation.mutate();
   };
 
+  const uploadFilesMutation = useMutation({
+    mutationFn: async (files: File[]) => {
+      const formData = new FormData();
+      files.forEach((file) => {
+        formData.append('files', file);
+      });
+
+      const response = await fetch('/api/resumes/upload', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload resumes');
+      }
+
+      return response.json();
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/email/fetch-history"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+      toast({
+        title: "Upload Successful",
+        description: `${data.count} resume(s) uploaded successfully`,
+      });
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    },
+    onError: () => {
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload resumes. Please try again.",
+        variant: "destructive",
+      });
+      setIsUploading(false);
+    },
+  });
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length > 0) {
+      setIsUploading(true);
+      uploadFilesMutation.mutate(files);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const files = Array.from(e.dataTransfer.files).filter(
+      file => file.type === 'application/pdf' || 
+              file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    );
+    
+    if (files.length > 0) {
+      setIsUploading(true);
+      uploadFilesMutation.mutate(files);
+    } else {
+      toast({
+        title: "Invalid Files",
+        description: "Please upload only PDF or DOCX files",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleBrowseClick = () => {
+    fileInputRef.current?.click();
+  };
+
   const gmailConnection = connections?.find((c) => c.provider === "gmail");
   const outlookConnection = connections?.find((c) => c.provider === "outlook");
 
@@ -171,7 +258,7 @@ export default function FetchCVs() {
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2" data-testid="text-page-title">Fetch CVs from Email</h1>
         <p className="text-muted-foreground text-base" data-testid="text-page-description">
-          Connect your email provider and import resume attachments automatically.
+          Connect your email provider and import resume attachments automatically. You can also upload CVs directly!
         </p>
       </div>
 
@@ -334,6 +421,73 @@ export default function FetchCVs() {
           </CardContent>
         </Card>
       </div>
+
+      <div className="bg-red-500 text-white p-4 mb-4 text-center font-bold">
+        TEST: If you see this, the file is loading! Upload section should be below.
+      </div>
+
+      {/* Upload Section */}
+      <Card className="mb-8">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 p-2 rounded-md">
+              <Upload className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-2xl">Upload Resumes</CardTitle>
+              <CardDescription>Drag and drop or browse to upload PDF/DOCX files</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div
+            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+              isDragging
+                ? 'border-primary bg-primary/5'
+                : 'border-muted-foreground/25 hover:border-muted-foreground/50'
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept=".pdf,.docx"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            <FileUp className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-lg font-semibold mb-2">
+              {isDragging ? 'Drop files here' : 'Upload Resume Files'}
+            </h3>
+            <p className="text-muted-foreground mb-4">
+              Drag and drop your PDF or DOCX files here, or click to browse
+            </p>
+            <Button
+              onClick={handleBrowseClick}
+              disabled={isUploading}
+              variant="outline"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Browse Files
+                </>
+              )}
+            </Button>
+            <p className="text-xs text-muted-foreground mt-4">
+              Supported formats: PDF, DOCX • Max 10 files at once
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card data-testid="card-fetch-history">
         <CardHeader>

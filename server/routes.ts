@@ -4,6 +4,7 @@ import session from "express-session";
 import path from "path";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import multer from "multer";
 
 // Fix __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -106,7 +107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/auth/google/callback", async (req, res) => {
+  app.get("/api/auth/callback/google", async (req, res) => {
     const { code, error } = req.query;
     
     console.log("📧 Google callback received:", { code: !!code, error });
@@ -528,6 +529,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Resume count error:", error);
       res.status(500).json({ error: "Failed to get resume count" });
+    }
+  });
+
+  // Multer configuration for file uploads
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10MB limit
+      files: 10, // Max 10 files
+    },
+    fileFilter: (req, file, cb) => {
+      const allowedTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Only PDF and DOCX files are allowed.'));
+      }
+    }
+  });
+
+  // Upload resumes endpoint
+  app.post("/api/resumes/upload", requireAuth, upload.array('files', 10), async (req, res) => {
+    try {
+      const files = req.files as Express.Multer.File[];
+      
+      if (!files || files.length === 0) {
+        return res.status(400).json({ error: "No files uploaded" });
+      }
+
+      const userId = req.session.userId!;
+      const uploadResults = {
+        successful: 0,
+        failed: 0,
+        errors: [] as string[]
+      };
+
+      // Process each file
+      for (const file of files) {
+        try {
+          // Extract text from CV
+          const extractedText = await extractTextFromCV(file.buffer, file.originalname);
+
+          if (!extractedText || extractedText.trim().length === 0) {
+            uploadResults.failed++;
+            uploadResults.errors.push(`${file.originalname}: Failed to extract text`);
+            continue;
+          }
+
+          // Store in database
+          const [resume] = await db.insert(resumes).values({
+            userId,
+            fileName: file.originalname,
+            fileSize: file.size,
+            fileType: file.mimetype,
+            extractedText,
+            source: 'upload',
+          }).returning();
+
+          // Store file in storage
+          await storage.storeCV(userId, file.originalname, file.buffer);
+
+          uploadResults.successful++;
+        } catch (error) {
+          console.error(`Error processing file ${file.originalname}:`, error);
+          uploadResults.failed++;
+          uploadResults.errors.push(`${file.originalname}: ${error instanceof Error ? error.message : 'Processing failed'}`);
+        }
+      }
+
+      res.json({
+        message: `Upload complete: ${uploadResults.successful} successful, ${uploadResults.failed} failed`,
+        ...uploadResults
+      });
+    } catch (error) {
+      console.error("Resume upload error:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : "Failed to upload resumes"
+      });
     }
   });
 
