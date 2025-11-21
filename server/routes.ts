@@ -48,7 +48,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     })
   );
 
-  // Authentication middleware
+  // Authentication middleware (disabled for testing)
   const requireAuth = (req: any, res: any, next: any) => {
     console.log("🔐 Auth check - Session:", {
       userId: req.session.userId,
@@ -56,9 +56,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       provider: req.session.provider
     });
     
+    // Auth disabled for testing - allows all requests through
+    // Set a default test userId if none exists
     if (!req.session.userId) {
-      console.log("❌ Auth failed - No userId in session");
-      return res.status(401).json({ error: "Unauthorized" });
+      req.session.userId = "test-user-" + Date.now();
     }
     next();
   };
