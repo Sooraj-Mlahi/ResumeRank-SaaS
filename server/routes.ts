@@ -66,14 +66,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Auth routes
   app.get("/api/auth/me", async (req, res) => {
+    // Set a default test user for testing (auth disabled)
     if (!req.session.userId) {
-      return res.json(null);
+      req.session.userId = "test-user-" + Date.now();
     }
 
     const user = await storage.getUser(req.session.userId);
     if (!user) {
-      req.session.destroy(() => {});
-      return res.json(null);
+      // Return test user for development/testing without database
+      return res.json({
+        id: req.session.userId,
+        email: "test@example.com",
+        name: "Test User",
+        provider: "test",
+      });
     }
 
     res.json({
