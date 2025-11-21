@@ -613,9 +613,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             continue;
           }
 
+          // Extract candidate info from resume text
+          const candidateInfo = await extractCandidateInfo(extractedText);
+
           // Store in database
           const [resume] = await db.insert(resumes).values({
             userId,
+            candidateName: candidateInfo.name,
+            email: candidateInfo.email,
+            phone: candidateInfo.phone,
             originalFileName: file.originalname,
             fileType: file.mimetype,
             extractedText,
