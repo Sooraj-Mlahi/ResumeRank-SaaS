@@ -457,7 +457,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/email/fetch/outlook", requireAuth, async (req, res) => {
+  app.post("/api/email/fetch/outlook", async (req, res) => {
+    // Bypass auth for demo - set mock userId
+    req.session.userId = "demo-user";
     try {
       // Get Outlook access token from session
       const accessToken = req.session.outlookAccessToken;
@@ -523,7 +525,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Resume routes
-  app.get("/api/resumes/count", requireAuth, async (req, res) => {
+  app.get("/api/resumes/count", async (req, res) => {
+    // Bypass auth for demo - set mock userId
+    req.session.userId = "demo-user";
     try {
       const result = await db.select({ count: sql<number>`count(*)` })
         .from(resumes)
@@ -559,7 +563,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload resumes endpoint
-  app.post("/api/resumes/upload", requireAuth, upload.array('files', 10), async (req, res) => {
+  app.post("/api/resumes/upload", upload.array('files', 10), async (req, res) => {
+    // Bypass auth for demo - set mock userId
+    req.session.userId = "demo-user";
     try {
       const files = req.files as Express.Multer.File[];
       
@@ -619,7 +625,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/resumes/rank", requireAuth, async (req, res) => {
+  app.post("/api/resumes/rank", async (req, res) => {
+    // Bypass auth for demo - set mock userId
+    req.session.userId = "demo-user";
     try {
       const { jobPrompt } = req.body;
 
@@ -688,7 +696,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/resumes/latest-analysis", requireAuth, async (req, res) => {
+  app.get("/api/resumes/latest-analysis", async (req, res) => {
+    // Bypass auth for demo - set mock userId
+    req.session.userId = "demo-user";
     try {
       // Get the latest analysis for this user
       const latestAnalysis = await db.select()
