@@ -11,6 +11,8 @@ import Dashboard from "@/pages/dashboard";
 import FetchCVs from "@/pages/fetch-cvs";
 import RankResumes from "@/pages/rank-resumes";
 import Results from "@/pages/results";
+import Profile from "@/pages/profile";
+import Settings from "@/pages/settings";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 
@@ -55,6 +57,8 @@ function AuthenticatedRoutes() {
         <Route path="/fetch" component={FetchCVs} />
         <Route path="/rank" component={RankResumes} />
         <Route path="/results" component={Results} />
+        <Route path="/profile" component={Profile} />
+        <Route path="/settings" component={Settings} />
         <Route component={NotFound} />
       </Switch>
     </div>

@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { FileText, Moon, Sun, LogOut } from "lucide-react";
+import { FileText, Moon, Sun, LogOut, Settings, User } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -116,6 +116,19 @@ export function Header({ user }: HeaderProps) {
                     </p>
                   </div>
                 </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <Link href="/profile" asChild>
+                  <DropdownMenuItem data-testid="button-profile">
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="/settings" asChild>
+                  <DropdownMenuItem data-testid="button-settings">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </DropdownMenuItem>
+                </Link>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} data-testid="button-logout">
                   <LogOut className="mr-2 h-4 w-4" />

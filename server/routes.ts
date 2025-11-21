@@ -791,6 +791,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Clear analysis history
+  app.post("/api/analyses/clear", requireAuth, async (req, res) => {
+    try {
+      // Get all analyses for this user
+      const userAnalyses = await db.select({ id: analyses.id })
+        .from(analyses)
+        .where(eq(analyses.userId, req.session.userId!));
+      
+      // Delete all analysis results first (foreign key constraint)
+      for (const analysis of userAnalyses) {
+        await db.delete(analysisResults)
+          .where(eq(analysisResults.analysisId, analysis.id));
+      }
+      
+      // Delete all analyses
+      await db.delete(analyses)
+        .where(eq(analyses.userId, req.session.userId!));
+      
+      res.json({ success: true, message: "Analysis history cleared" });
+    } catch (error) {
+      console.error("Clear history error:", error);
+      res.status(500).json({ error: "Failed to clear history" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
