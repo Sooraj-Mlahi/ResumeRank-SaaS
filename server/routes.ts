@@ -65,12 +65,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Auth routes
   app.get("/api/auth/me", async (req, res) => {
-    // Return demo user to bypass auth for testing UI
+    if (!req.session.userId) {
+      return res.json(null);
+    }
+
+    const user = await storage.getUser(req.session.userId);
+    if (!user) {
+      req.session.destroy(() => {});
+      return res.json(null);
+    }
+
     res.json({
-      id: "demo-user",
-      email: "demo@example.com",
-      name: "Demo User",
-      provider: "demo",
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      provider: user.provider,
     });
   });
 
@@ -257,9 +266,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Dashboard stats - OPTIMIZED for performance
-  app.get("/api/dashboard/stats", async (req, res) => {
-    // Bypass auth for demo - set mock userId
-    req.session.userId = "demo-user";
+  app.get("/api/dashboard/stats", requireAuth, async (req, res) => {
     try {
       // Direct query - much faster than storage methods
       const [statsResult] = await db
@@ -297,9 +304,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Email connection routes
-  app.get("/api/email/connections", async (req, res) => {
-    // Bypass auth for demo - set mock userId
-    req.session.userId = "demo-user";
+  app.get("/api/email/connections", requireAuth, async (req, res) => {
     try {
       const connections = await db.select()
         .from(emailConnections)
@@ -311,9 +316,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/email/connect/gmail", async (req, res) => {
-    // Bypass auth for demo - set mock userId
-    req.session.userId = "demo-user";
+  app.post("/api/email/connect/gmail", requireAuth, async (req, res) => {
     try {
       // Clear any existing session data to force fresh OAuth
       delete req.session.email;
@@ -329,9 +332,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/email/connect/outlook", async (req, res) => {
-    // Bypass auth for demo - set mock userId
-    req.session.userId = "demo-user";
+  app.post("/api/email/connect/outlook", requireAuth, async (req, res) => {
     try {
       // Clear any existing session data to force fresh OAuth
       delete req.session.email;
@@ -347,9 +348,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/email/fetch-history", async (req, res) => {
-    // Bypass auth for demo - set mock userId
-    req.session.userId = "demo-user";
+  app.get("/api/email/fetch-history", requireAuth, async (req, res) => {
     try {
       // Get fetch history from email connections with actual resume counts
       const connections = await db.select()
@@ -386,9 +385,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/email/fetch/gmail", async (req, res) => {
-    // Bypass auth for demo - set mock userId
-    req.session.userId = "demo-user";
+  app.post("/api/email/fetch/gmail", requireAuth, async (req, res) => {
     try {
       const attachments = await fetchCVsFromGmail();
       let processedCount = 0;
@@ -457,9 +454,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/email/fetch/outlook", async (req, res) => {
-    // Bypass auth for demo - set mock userId
-    req.session.userId = "demo-user";
+  app.post("/api/email/fetch/outlook", requireAuth, async (req, res) => {
     try {
       // Get Outlook access token from session
       const accessToken = req.session.outlookAccessToken;
@@ -525,9 +520,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Resume routes
-  app.get("/api/resumes/count", async (req, res) => {
-    // Bypass auth for demo - set mock userId
-    req.session.userId = "demo-user";
+  app.get("/api/resumes/count", requireAuth, async (req, res) => {
     try {
       const result = await db.select({ count: sql<number>`count(*)` })
         .from(resumes)
@@ -563,9 +556,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload resumes endpoint
-  app.post("/api/resumes/upload", upload.array('files', 10), async (req, res) => {
-    // Bypass auth for demo - set mock userId
-    req.session.userId = "demo-user";
+  app.post("/api/resumes/upload", requireAuth, upload.array('files', 10), async (req, res) => {
     try {
       const files = req.files as Express.Multer.File[];
       
@@ -625,9 +616,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/resumes/rank", async (req, res) => {
-    // Bypass auth for demo - set mock userId
-    req.session.userId = "demo-user";
+  app.post("/api/resumes/rank", requireAuth, async (req, res) => {
     try {
       const { jobPrompt } = req.body;
 
@@ -696,9 +685,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/resumes/latest-analysis", async (req, res) => {
-    // Bypass auth for demo - set mock userId
-    req.session.userId = "demo-user";
+  app.get("/api/resumes/latest-analysis", requireAuth, async (req, res) => {
     try {
       // Get the latest analysis for this user
       const latestAnalysis = await db.select()
