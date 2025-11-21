@@ -1,0 +1,139 @@
+COMPLETE CLIENT REQUIREMENTS (Final Verified List)
+
+(All features the client explicitly requested)
+
+🔐 Authentication & Account System
+
+Login with Gmail or Outlook (company email)
+
+Signup using Gmail or Outlook
+
+Forgot password using OAuth (recover via Google/Outlook)
+
+Maintain user session
+
+Logout functionality
+
+Settings page
+
+User profile page (email, name, profile image)
+
+📥 CV Input Methods
+
+Fetch CVs directly from HR's inbox:
+
+Using Gmail API
+
+Using Microsoft Outlook Graph API
+
+(NEW Requirement after demo) Drag & Drop upload for CVs
+
+(NEW Requirement after demo) Manual bulk upload from folders
+
+(NEW Requirement after demo) Single CV upload manually
+
+📄 CV File Handling
+
+Automatically detect CV attachments
+
+Supported formats: PDF, DOC, DOCX
+
+Extract text from CVs
+
+Store original file & extracted text in database
+
+Link each CV to the logged-in user
+
+🧠 AI Resume Filtering & Ranking
+
+HR enters job prompt / role description
+
+Use OpenAI API to analyze CVs
+
+Generate:
+
+Score between 0–100
+
+Strengths summary (1–3 bullets)
+
+Weaknesses summary (1–3 bullets)
+
+Rank resumes:
+
+Best to worst
+
+Automatically sorted
+
+📊 Dashboard & Pages
+
+Dashboard home
+
+Page to fetch CVs from inbox
+
+Page to upload CVs manually (drag-and-drop & file picker)
+
+Page to enter job prompt
+
+Results page showing:
+
+candidate score
+
+strengths
+
+weaknesses
+
+view extracted CV text
+
+download original file
+
+📜 History & User Data Management
+
+Maintain history of all past analyses
+
+Save:
+
+job prompt
+
+date/time
+
+number of CVs analyzed
+
+scores & summaries
+
+History page to view previous results
+
+Option to clear history
+
+Settings page for basic controls
+
+Profile page for user information
+
+🎨 UI/UX Requirements
+
+Professional
+
+Clean
+
+Functional layout
+
+Minimal Tailwind CSS styling
+
+Responsive
+
+No advanced design or animations
+
+❌ Not Included (Important)
+
+No documentation
+
+No thesis or reports
+
+No custom UI/UX design
+
+No exporting PDFs or advanced analytics
+
+No admin roles
+
+No extra features outside this list
+
+Additional features must be paid separately
