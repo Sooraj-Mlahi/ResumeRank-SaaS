@@ -49,7 +49,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Authentication middleware (disabled for testing)
-  const requireAuth = (req: any, res: any, next: any) => {
+  const requireAuth = async (req: any, res: any, next: any) => {
     console.log("🔐 Auth check - Session:", {
       userId: req.session.userId,
       email: req.session.email,
@@ -60,6 +60,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Set a default test userId if none exists
     if (!req.session.userId) {
       req.session.userId = "test-user-" + Date.now();
+      // Create the test user in database so uploads work
+      try {
+        await storage.createUser({
+          email: "test-" + Date.now() + "@example.com",
+          provider: "test",
+          providerId: req.session.userId,
+          name: "Test User"
+        });
+      } catch (err) {
+        // User might already exist, continue anyway
+        console.log("Test user creation note:", (err as any).message);
+      }
     }
     next();
   };
@@ -69,6 +81,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Set a default test user for testing (auth disabled)
     if (!req.session.userId) {
       req.session.userId = "test-user-" + Date.now();
+      try {
+        await storage.createUser({
+          id: req.session.userId,
+          email: "test-" + req.session.userId + "@example.com",
+          provider: "test",
+          providerId: req.session.userId,
+          name: "Test User"
+        });
+      } catch (err) {
+        // User might already exist
+      }
     }
 
     const user = await storage.getUser(req.session.userId);
