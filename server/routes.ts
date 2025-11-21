@@ -5,6 +5,7 @@ import path from "path";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import multer from "multer";
+import { hash, compare } from "bcryptjs";
 
 // Fix __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -48,60 +49,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     })
   );
 
-  // Authentication middleware (disabled for testing)
+  // Authentication middleware - now enabled
   const requireAuth = async (req: any, res: any, next: any) => {
-    console.log("🔐 Auth check - Session:", {
-      userId: req.session.userId,
-      email: req.session.email,
-      provider: req.session.provider
-    });
-    
-    // Auth disabled for testing - allows all requests through
-    // Set a default test userId if none exists
     if (!req.session.userId) {
-      req.session.userId = "test-user-" + Date.now();
-      // Create the test user in database so uploads work
-      try {
-        await storage.createUser({
-          email: "test-" + Date.now() + "@example.com",
-          provider: "test",
-          providerId: req.session.userId,
-          name: "Test User"
-        });
-      } catch (err) {
-        // User might already exist, continue anyway
-        console.log("Test user creation note:", (err as any).message);
-      }
+      return res.status(401).json({ error: "Unauthorized" });
     }
     next();
   };
 
   // Auth routes
   app.get("/api/auth/me", async (req, res) => {
-    // Set a default test user for testing (auth disabled)
     if (!req.session.userId) {
-      req.session.userId = "test-user-" + Date.now();
-      try {
-        await storage.createUser({
-          email: "test-" + req.session.userId + "@example.com",
-          provider: "test",
-          providerId: req.session.userId,
-          name: "Test User"
-        });
-      } catch (err) {
-        // User might already exist
-      }
+      return res.json(null);
     }
 
     const user = await storage.getUser(req.session.userId);
     if (!user) {
-      // Return test user for development/testing without database
-      return res.json({
-        id: req.session.userId,
-        email: "test@example.com",
-        name: "Test User",
-        provider: "test",
-      });
+      return res.json(null);
     }
 
     res.json({
@@ -110,6 +74,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
       name: user.name,
       provider: user.provider,
     });
+  });
+
+  // Password signup
+  app.post("/api/auth/signup", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email and password required" });
+      }
+
+      if (password.length < 6) {
+        return res.status(400).json({ error: "Password must be at least 6 characters" });
+      }
+
+      // Check if user exists
+      const existing = await storage.getUserByEmail(email);
+      if (existing) {
+        return res.status(400).json({ error: "Email already registered" });
+      }
+
+      // Hash password
+      const passwordHash = await hash(password, 10);
+
+      // Create user
+      const user = await storage.createUser({
+        email,
+        provider: "password",
+        providerId: email,
+        name: email.split("@")[0],
+        passwordHash,
+      });
+
+      req.session.userId = user.id;
+      req.session.email = user.email;
+      req.session.provider = "password";
+
+      res.json({ success: true, user });
+    } catch (error) {
+      console.error("Signup error:", error);
+      res.status(500).json({ error: "Signup failed" });
+    }
+  });
+
+  // Password login
+  app.post("/api/auth/password-login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email and password required" });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      if (!user || !user.passwordHash) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      const valid = await compare(password, user.passwordHash);
+      if (!valid) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      req.session.userId = user.id;
+      req.session.email = user.email;
+      req.session.provider = "password";
+
+      res.json({ success: true, user });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ error: "Login failed" });
+    }
   });
 
   // Handle Google OAuth redirect at root (matching google-credentials.json)

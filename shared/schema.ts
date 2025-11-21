@@ -9,8 +9,9 @@ export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: text("email").notNull().unique(),
   name: text("name"),
-  provider: text("provider").notNull(), // 'google' or 'microsoft'
+  provider: text("provider").notNull(), // 'google', 'microsoft', or 'password'
   providerId: text("provider_id").notNull(),
+  passwordHash: text("password_hash"), // optional - only for password auth
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
   emailIdx: index("users_email_idx").on(table.email),
@@ -187,6 +188,8 @@ export const userSettingsRelations = relations(userSettings, ({ one }) => ({
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
+}).extend({
+  passwordHash: z.string().optional(),
 });
 
 export const insertResumeSchema = createInsertSchema(resumes).omit({
