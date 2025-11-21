@@ -575,7 +575,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const file of files) {
         try {
           // Extract text from CV
-          const extractedText = await extractTextFromCV(file.buffer, file.originalname);
+          const extractedText = await extractTextFromCV(file.buffer, file.mimetype);
 
           if (!extractedText || extractedText.trim().length === 0) {
             uploadResults.failed++;

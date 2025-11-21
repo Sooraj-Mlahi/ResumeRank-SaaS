@@ -1,0 +1,58 @@
+Error processing file Resume Karan Kumar.pdf: Error: Unsupported file type: Resume Karan Kumar.pdf
+    at extractTextFromCV (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1\ResumeRank-SaaS-1\server\cv-extractor.ts:44:11)
+    at <anonymous> (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1\ResumeRank-SaaS-1\server\routes.ts:578:39) 
+    at Layer.handle [as handle_request] (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1\ResumeRank-SaaS-1\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1\ResumeRank-SaaS-1\node_modules\express\lib\router\route.js:149:13)
+    at done (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1\ResumeRank-SaaS-1\node_modules\multer\lib\make-middleware.js:59:7)
+    at indicateDone (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1\ResumeRank-SaaS-1\node_modules\multer\lib\make-middleware.js:63:68)
+    at Multipart.<anonymous> (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1\ResumeRank-SaaS-1\node_modules\multer\lib\make-middleware.js:187:7)
+    at Multipart.emit (node:events:519:28)
+    at emitCloseNT (node:internal/streams/destroy:147:10)
+    at process.processTicksAndRejections (node:internal/process/task_queues:81:21)
+Error processing file SOORAJ MALHI.docx: Error: Unsupported file type: SOORAJ MALHI.docx
+    at extractTextFromCV (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1\ResumeRank-SaaS-1\server\cv-extractor.ts:44:11)
+    at <anonymous> (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1\ResumeRank-SaaS-1\server\routes.ts:578:39) 
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing file Sooraj's Resume for JAVA Intership.pdf: Error: Unsupported file type: Sooraj's Resume for JAVA Intership.pdf
+    at extractTextFromCV (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1\ResumeRank-SaaS-1\server\cv-extractor.ts:44:11)
+    at <anonymous> (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1\ResumeRank-SaaS-1\server\routes.ts:578:39) 
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2:03:25 AM [express] POST /api/resumes/upload 200 in 35ms :: {"message":"Upload complete: 0 successf…
+🔐 Auth check - Session: {
+  userId: 'c08a4688-262b-4e28-bb39-8ff099837da7',
+  email: 'karan22k4755@gmail.com',
+  provider: 'google'
+}
+[DB Query]: select "id", "user_id", "provider", "is_active", "last_fetched_at", "created_at" from "email_connections" where "email_connections"."user_id" = $1
+[DB Query]: select count(*) from "resumes" where "resumes"."user_id" = $1 AND "resumes"."source" = $2
+2:03:26 AM [express] GET /api/email/fetch-history 304 in 1314ms :: [{"id":"85dd37bc-b04e-457e-8c30-d…
+🔐 Auth check - Session: {
+  userId: 'c08a4688-262b-4e28-bb39-8ff099837da7',
+  email: 'karan22k4755@gmail.com',
+  provider: 'google'
+}
+Error processing file ResumeKaranKumar.pdf: Error: Unsupported file type: ResumeKaranKumar.pdf
+    at extractTextFromCV (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1\ResumeRank-SaaS-1\server\cv-extractor.ts:44:11)
+    at <anonymous> (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1\ResumeRank-SaaS-1\server\routes.ts:578:39) 
+    at Layer.handle [as handle_request] (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1\ResumeRank-SaaS-1\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1\ResumeRank-SaaS-1\node_modules\express\lib\router\route.js:149:13)
+    at done (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1\ResumeRank-SaaS-1\node_modules\multer\lib\make-middleware.js:59:7)
+    at indicateDone (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1\ResumeRank-SaaS-1\node_modules\multer\lib\make-middleware.js:63:68)
+    at Multipart.<anonymous> (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1\ResumeRank-SaaS-1\node_modules\multer\lib\make-middleware.js:187:7)
+    at Multipart.emit (node:events:519:28)
+    at emitCloseNT (node:internal/streams/destroy:147:10)
+    at process.processTicksAndRejections (node:internal/process/task_queues:81:21)
+Error processing file SOORAJ MALHI.docx: Error: Unsupported file type: SOORAJ MALHI.docx
+    at extractTextFromCV (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1\ResumeRank-SaaS-1\server\cv-extractor.ts:44:11)
+    at <anonymous> (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1\ResumeRank-SaaS-1\server\routes.ts:578:39) 
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing file Sooraj's Resume for JAVA Intership.pdf: Error: Unsupported file type: Sooraj's Resume for JAVA Intership.pdf
+    at extractTextFromCV (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1\ResumeRank-SaaS-1\server\cv-extractor.ts:44:11)
+    at <anonymous> (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1\ResumeRank-SaaS-1\server\routes.ts:578:39) 
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2:06:12 AM [express] POST /api/resumes/upload 200 in 20ms :: {"message":"Upload complete: 0 successf…
+🔐 Auth check - Session: {
+  userId: 'c08a4688-262b-4e28-bb39-8ff099837da7',
+  email: 'karan22k4755@gmail.com',
+  provider: 'google'
+}
