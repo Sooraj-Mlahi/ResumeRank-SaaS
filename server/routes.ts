@@ -84,8 +84,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Handle Google OAuth redirect at root (matching google-credentials.json)
-  app.get("/", (req, res) => {
-    const { code, error, state } = req.query;
+  // Note: In development, Vite middleware will handle serving the app
+  // This route only handles OAuth callbacks that come to root
+  app.get("/", (req, res, next) => {
+    const { code, error } = req.query;
     
     // If this is an OAuth callback (has code or error), forward to proper callback
     if (code || error) {
@@ -93,8 +95,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.redirect(`/api/auth/google/callback?${req.url.split('?')[1] || ''}`);
     }
     
-    // Otherwise, serve the normal app
-    return res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+    // Otherwise, let Vite middleware handle it (in dev) or serve static files (in prod)
+    next();
   });
 
   app.get("/api/auth/google", (req, res) => {

@@ -1,12 +1,14 @@
 // OpenAI integration using javascript_openai blueprint
 import OpenAI from "openai";
 
-if (!process.env.OPENAI_API_KEY) {
-  throw new Error("OPENAI_API_KEY must be set");
+const apiKey = process.env.OPENAI_API_KEY;
+
+if (!apiKey) {
+  console.warn("⚠️  OPENAI_API_KEY not set - AI features will not work. Please add your OpenAI API key in the Secrets tab.");
 }
 
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = apiKey ? new OpenAI({ apiKey }) : null;
 
 export interface ResumeScore {
   score: number; // 0-100
@@ -19,6 +21,9 @@ export async function scoreResume(
   resumeText: string,
   jobPrompt: string
 ): Promise<ResumeScore> {
+  if (!openai) {
+    throw new Error("OpenAI API key not configured. Please add OPENAI_API_KEY to your environment secrets.");
+  }
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
@@ -55,6 +60,14 @@ export async function extractCandidateInfo(resumeText: string): Promise<{
   email: string | null;
   phone: string | null;
 }> {
+  if (!openai) {
+    console.warn("OpenAI not configured - using fallback candidate extraction");
+    return {
+      name: "Unknown Candidate",
+      email: null,
+      phone: null,
+    };
+  }
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
