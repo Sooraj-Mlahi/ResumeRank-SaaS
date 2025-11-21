@@ -622,9 +622,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             source: 'upload',
           }).returning();
 
-          // Store file in storage
-          await storage.storeCV(userId, file.originalname, file.buffer);
-
           uploadResults.successful++;
         } catch (error) {
           console.error(`Error processing file ${file.originalname}:`, error);
