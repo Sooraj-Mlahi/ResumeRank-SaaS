@@ -1,0 +1,192 @@
+npm run dev
+
+> rest-express@1.0.0 dev
+> cross-env NODE_ENV=development tsx server/index.ts
+
+The `fetchConnectionCache` option is deprecated (now always `true`)
+2:15:45 AM [express] serving on port 5000
+
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+2:15:53 AM [express] GET /api/auth/me 200 in 5ms
+🔐 Auth check - Session: { userId: undefined, email: undefined, provider: undefined }
+❌ Auth failed - No userId in session
+2:15:54 AM [express] GET /api/resumes/count 401 in 11ms :: {"error":"Unauthorized"}
+📧 Gmail OAuth redirect URI: http://localhost:5000/api/auth/callback/google
+2:15:55 AM [express] GET /api/auth/google 302 in 7ms
+📧 Google callback received: { code: true, error: undefined }
+🔄 Exchanging code for Gmail tokens...
+📧 Gmail OAuth redirect URI: http://localhost:5000/api/auth/callback/google
+✅ Gmail tokens saved to gmail-token.json
+✅ Gmail tokens received
+🔄 Getting Gmail user info...
+📧 Gmail OAuth redirect URI: http://localhost:5000/api/auth/callback/google
+✅ Gmail user info: { email: 'karan22k4755@gmail.com', name: 'karan22k4755' }
+✅ Gmail session set: { email: 'karan22k4755@gmail.com', provider: 'google' }
+2:18:22 AM [express] GET /api/auth/callback/google 302 in 2269ms
+📞 Auth callback - Session: { email: 'karan22k4755@gmail.com', provider: 'google' }
+[DB Query]: select "id", "email", "name", "provider", "provider_id", "created_at" from "users" where "users"."email" = $1
+✅ User authenticated successfully: {
+  userId: 'c08a4688-262b-4e28-bb39-8ff099837da7',
+  email: 'karan22k4755@gmail.com',
+  provider: 'google'
+}
+[DB Query]: select "id", "user_id", "provider", "is_active", "last_fetched_at", "created_at" from "email_connections" where ("email_connections"."user_id" = $1 and "email_connections"."provider" = $2)
+Auth callback error: NeonDbError: Error connecting to database: fetch failed
+    at execute (file:///C:/Users/Hp/Downloads/Fiverr%20SaaS%20builder/upload/ResumeRank-SaaS-1/ResumeRank-SaaS-1/node_modules/@neondatabase/serverless/index.mjs:1549:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  severity: undefined,
+  code: undefined,
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined,
+  sourceError: TypeError: fetch failed
+      at node:internal/deps/undici/undici:13185:13
+      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+      at async execute (file:///C:/Users/Hp/Downloads/Fiverr%20SaaS%20builder/upload/ResumeRank-SaaS-1/ResumeRank-SaaS-1/node_modules/@neondatabase/serverless/index.mjs:1548:15) {
+    [cause]: ConnectTimeoutError: Connect Timeout Error (attempted addresses: 52.20.107.131:443, 34.194.100.28:443, 44.207.148.149:443, 44.199.59.172:443, 100.26.116.133:443, 23.23.229.9:443)
+        at onConnectTimeout (node:internal/deps/undici/undici:2331:28)
+        at node:internal/deps/undici/undici:2283:50
+        at Immediate._onImmediate (node:internal/deps/undici/undici:2313:37)
+        at process.processImmediate (node:internal/timers:483:21) {
+      code: 'UND_ERR_CONNECT_TIMEOUT'
+    }
+  }
+}
+2:18:36 AM [express] GET /api/auth/callback 302 in 14485ms
+[DB Query]: select "id", "email", "name", "provider", "provider_id", "created_at" from "users" where "users"."id" = $1
+2:18:37 AM [express] GET /api/auth/me 200 in 696ms :: {"id":"c08a4688-262b-4e28-bb39-8ff099837da7","…
+🔐 Auth check - Session: {
+  userId: 'c08a4688-262b-4e28-bb39-8ff099837da7',
+  email: 'karan22k4755@gmail.com',
+  provider: 'google'
+}
+[DB Query]: select count(*)::int, max("analyses"."created_at")::text from "resumes" left join "analyses" on "analyses"."user_id" = $1 where "resumes"."user_id" = $2
+2:18:38 AM [express] GET /api/dashboard/stats 200 in 358ms :: {"totalResumes":84,"lastAnalysisDate":…
+🔐 Auth check - Session: {
+  userId: 'c08a4688-262b-4e28-bb39-8ff099837da7',
+  email: 'karan22k4755@gmail.com',
+  provider: 'google'
+}
+[DB Query]: select "id", "user_id", "provider", "is_active", "last_fetched_at", "created_at" from "email_connections" where "email_connections"."user_id" = $1
+🔐 Auth check - Session: {
+  userId: 'c08a4688-262b-4e28-bb39-8ff099837da7',
+  email: 'karan22k4755@gmail.com',
+  provider: 'google'
+}
+[DB Query]: select "id", "user_id", "provider", "is_active", "last_fetched_at", "created_at" from "email_connections" where "email_connections"."user_id" = $1
+[DB Query]: select count(*) from "resumes" where "resumes"."user_id" = $1 AND "resumes"."source" = $2
+2:18:43 AM [express] GET /api/email/connections 304 in 713ms :: [{"id":"85dd37bc-b04e-457e-8c30-d321…
+2:18:49 AM [express] GET /api/email/fetch-history 304 in 6512ms :: [{"id":"85dd37bc-b04e-457e-8c30-d…
+🔐 Auth check - Session: {
+  userId: 'c08a4688-262b-4e28-bb39-8ff099837da7',
+  email: 'karan22k4755@gmail.com',
+  provider: 'google'
+}
+[DB Query]: insert into "resumes" ("id", "user_id", "candidate_name", "email", "phone", "extracted_text", "original_file_name", "file_data", "file_type", "source", "email_subject", "email_date", "fetched_at") values (default, $1, default, default, default, $2, default, default, $3, $4, default, default, default) returning "id", "user_id", "candidate_name", "email", "phone", "extracted_text", "original_file_name", "file_data", "file_type", "source", "email_subject", "email_date", "fetched_at"
+Error processing file ResumeKaranKumar.pdf: NeonDbError: null value in column "candidate_name" of relation "resumes" violates not-null constraint
+    at execute (file:///C:/Users/Hp/Downloads/Fiverr%20SaaS%20builder/upload/ResumeRank-SaaS-1/ResumeRank-SaaS-1/node_modules/@neondatabase/serverless/index.mjs:1556:55)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  severity: 'ERROR',
+  code: '23502',
+  detail: 'Failing row contains (031383cb-7b1c-4855-9d24-f44fa88d9679, c08a4688-262b-4e28-bb39-8ff099837da7, null, null, null, KARAN KUMAR\n' +
+    '+92-311-3151112⋄Karachi, Pakistan\n' +
+    'karan44102@gmail..., null, null, application/pdf, upload, null, null, 2025-11-21 21:18:55.379435).',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'resumes',
+  column: 'candidate_name',
+  dataType: undefined,
+  constraint: undefined,
+  file: 'execMain.c',
+  line: '1997',
+  routine: 'ExecConstraints',
+  sourceError: undefined
+}
+[DB Query]: insert into "resumes" ("id", "user_id", "candidate_name", "email", "phone", "extracted_text", "original_file_name", "file_data", "file_type", "source", "email_subject", "email_date", "fetched_at") values (default, $1, default, default, default, $2, default, default, $3, $4, default, default, default) returning "id", "user_id", "candidate_name", "email", "phone", "extracted_text", "original_file_name", "file_data", "file_type", "source", "email_subject", "email_date", "fetched_at"
+Error processing file SOORAJ MALHI.docx: NeonDbError: null value in column "candidate_name" of relation "resumes" violates not-null constraint
+    at execute (file:///C:/Users/Hp/Downloads/Fiverr%20SaaS%20builder/upload/ResumeRank-SaaS-1/ResumeRank-SaaS-1/node_modules/@neondatabase/serverless/index.mjs:1556:55)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  severity: 'ERROR',
+  code: '23502',
+  detail: 'Failing row contains (217f0c77-2526-4b5d-a33d-34b897e4057c, c08a4688-262b-4e28-bb39-8ff099837da7, null, null, null, SOORAJ MALHI\n' +
+    '\n' +
+    '+923322846740 ⋄ Karachi, Pakistan\n' +
+    '\n' +
+    'soorajmalhi18..., null, null, application/vnd.openxmlformats-officedocument.wordprocessingml.d..., upload, null, null, 2025-11-21 21:18:55.814155).',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'resumes',
+  column: 'candidate_name',
+  dataType: undefined,
+  constraint: undefined,
+  file: 'execMain.c',
+  line: '1997',
+  routine: 'ExecConstraints',
+  sourceError: undefined
+}
+Warning: TT: undefined function: 21
+[DB Query]: insert into "resumes" ("id", "user_id", "candidate_name", "email", "phone", "extracted_text", "original_file_name", "file_data", "file_type", "source", "email_subject", "email_date", "fetched_at") values (default, $1, default, default, default, $2, default, default, $3, $4, default, default, default) returning "id", "user_id", "candidate_name", "email", "phone", "extracted_text", "original_file_name", "file_data", "file_type", "source", "email_subject", "email_date", "fetched_at"
+Error processing file Sooraj's Resume for JAVA Intership.pdf: NeonDbError: null value in column "candidate_name" of relation "resumes" violates not-null constraint
+    at execute (file:///C:/Users/Hp/Downloads/Fiverr%20SaaS%20builder/upload/ResumeRank-SaaS-1/ResumeRank-SaaS-1/node_modules/@neondatabase/serverless/index.mjs:1556:55)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  severity: 'ERROR',
+  code: '23502',
+  detail: 'Failing row contains (8b1e73c8-a815-4489-b50b-6f3cd548e426, c08a4688-262b-4e28-bb39-8ff099837da7, null, null, null, SOORAJ MALHI \n' +
+    '+923322846740 ⋄ Karachi, Pakistan \n' +
+    'soorajmalhi18..., null, null, application/pdf, upload, null, null, 2025-11-21 21:18:56.352382).',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'resumes',
+  column: 'candidate_name',
+  dataType: undefined,
+  constraint: undefined,
+  file: 'execMain.c',
+  line: '1997',
+  routine: 'ExecConstraints',
+  sourceError: undefined
+}
+2:18:55 AM [express] POST /api/resumes/upload 200 in 4173ms :: {"message":"Upload complete: 0 succes…
+🔐 Auth check - Session: {
+  userId: 'c08a4688-262b-4e28-bb39-8ff099837da7',
+  email: 'karan22k4755@gmail.com',
+  provider: 'google'
+}
+[DB Query]: select "id", "user_id", "provider", "is_active", "last_fetched_at", "created_at" from "email_connections" where "email_connections"."user_id" = $1
+[DB Query]: select count(*) from "resumes" where "resumes"."user_id" = $1 AND "resumes"."source" = $2
+2:18:56 AM [express] GET /api/email/fetch-history 304 in 1185ms :: [{"id":"85dd37bc-b04e-457e-8c30-d…
+🔐 Auth check - Session: {
+  userId: 'c08a4688-262b-4e28-bb39-8ff099837da7',
+  email: 'karan22k4755@gmail.com',
+  provider: 'google'
+}
+[DB Query]: select count(*) from "resumes" where "resumes"."user_id" = $1
+2:19:11 AM [express] GET /api/resumes/count 304 in 778ms :: {"count":"14"}
+🔐 Auth check - Session: {
+  userId: 'c08a4688-262b-4e28-bb39-8ff099837da7',
+  email: 'karan22k4755@gmail.com',
+  provider: 'google'
+}
+[DB Query]: select "id", "user_id", "candidate_name", "email", "phone", "extracted_text", "original_file_name", "file_data", "file_type", "source", "email_subject", "email_date", "fetched_at" from "resumes" where "resumes"."user_id" = $1

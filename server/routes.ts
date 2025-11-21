@@ -586,8 +586,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Store in database
           const [resume] = await db.insert(resumes).values({
             userId,
-            fileName: file.originalname,
-            fileSize: file.size,
+            originalFileName: file.originalname,
             fileType: file.mimetype,
             extractedText,
             source: 'upload',

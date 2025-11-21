@@ -21,12 +21,12 @@ export const users = pgTable("users", {
 export const resumes = pgTable("resumes", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  candidateName: text("candidate_name").notNull(),
+  candidateName: text("candidate_name"), // optional - extracted from CV or filename
   email: text("email"),
   phone: text("phone"),
   extractedText: text("extracted_text").notNull(),
   originalFileName: text("original_file_name").notNull(),
-  fileData: text("file_data").notNull(), // base64 encoded file
+  fileData: text("file_data"), // base64 encoded file - optional for storage efficiency
   fileType: text("file_type").notNull(), // 'pdf', 'doc', 'docx'
   source: text("source").notNull(), // 'gmail' or 'outlook'
   emailSubject: text("email_subject"),
