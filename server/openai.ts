@@ -86,11 +86,7 @@ export async function extractCandidateInfo(resumeText: string): Promise<{
 }> {
   if (!openai) {
     console.warn("OpenAI not configured - using fallback candidate extraction");
-    return {
-      name: "Unknown Candidate",
-      email: null,
-      phone: null,
-    };
+    return extractCandidateInfoFallback(resumeText);
   }
   try {
     const response = await openai.chat.completions.create({
@@ -98,30 +94,86 @@ export async function extractCandidateInfo(resumeText: string): Promise<{
       messages: [
         {
           role: "system",
-          content: `Extract candidate info as JSON: {"name":"candidate name","email":"email@example.com or null","phone":"phone number or null"}`,
+          content: `You must respond with valid JSON. Extract candidate info from resume.`,
         },
         {
           role: "user",
-          content: `Extract name, email, phone from resume:\n${resumeText.slice(0, 1000)}`,
+          content: `Extract name, email, phone from this resume and respond with JSON in this exact format: {"name":"full name or null","email":"email@example.com or null","phone":"phone number or null"}\n\nResume:\n${resumeText.slice(0, 1000)}`,
         },
       ],
       response_format: { type: "json_object" },
       max_completion_tokens: 150,
     });
 
-    const result = JSON.parse(response.choices[0].message.content || "{}");
+    const content = response.choices[0].message.content || "{}";
+    const result = JSON.parse(content);
+
+    const name = result.name?.trim() || null;
+    const email = result.email?.trim() || null;
+    const phone = result.phone?.trim() || null;
+
+    // If AI couldn't extract name, try fallback extraction
+    if (!name) {
+      console.warn("AI extraction returned null name, using fallback extraction");
+      return extractCandidateInfoFallback(resumeText);
+    }
 
     return {
-      name: result.name || "Unknown Candidate",
-      email: result.email || null,
-      phone: result.phone || null,
+      name: name || "Unknown Candidate",
+      email: email,
+      phone: phone,
     };
   } catch (error) {
-    console.error("Failed to extract candidate info:", error);
-    return {
-      name: "Unknown Candidate",
-      email: null,
-      phone: null,
-    };
+    console.error("Failed to extract candidate info with AI:", error);
+    // Fall back to pattern-based extraction
+    return extractCandidateInfoFallback(resumeText);
   }
+}
+
+// Fallback extraction using regex patterns
+function extractCandidateInfoFallback(resumeText: string): {
+  name: string;
+  email: string | null;
+  phone: string | null;
+} {
+  let name = "Unknown Candidate";
+  let email: string | null = null;
+  let phone: string | null = null;
+
+  // Extract email using regex
+  const emailMatch = resumeText.match(/[\w\.-]+@[\w\.-]+\.\w+/);
+  if (emailMatch) {
+    email = emailMatch[0];
+  }
+
+  // Extract phone using regex (various formats)
+  const phoneMatch = resumeText.match(/(\+?1?\s*[-.]?\(?(\d{3})\)?[-.]?\s?(\d{3})[-.]?(\d{4}))|(\+?[\d\s\-\(\)]{10,})/);
+  if (phoneMatch) {
+    phone = phoneMatch[0].trim();
+  }
+
+  // Extract name from first line (usually contains name)
+  const lines = resumeText.split('\n').filter(l => l.trim().length > 0);
+  if (lines.length > 0) {
+    const firstLine = lines[0].trim();
+    // Look for a line that looks like a name (no email, phone, or special chars)
+    if (!firstLine.includes('@') && !firstLine.match(/\d{3}/) && firstLine.length < 100) {
+      name = firstLine;
+    }
+  }
+
+  // If still no name, try to find a line after "name" or "Name"
+  if (name === "Unknown Candidate") {
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].toLowerCase();
+      if (line.includes('name:') || line.includes('name -')) {
+        if (lines[i + 1]) {
+          name = lines[i + 1].trim();
+          break;
+        }
+      }
+    }
+  }
+
+  return { name, email, phone };
 }

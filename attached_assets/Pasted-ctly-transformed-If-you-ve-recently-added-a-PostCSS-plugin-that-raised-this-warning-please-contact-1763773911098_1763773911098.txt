@@ -1,0 +1,45 @@
+ctly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+6:02:38 AM [express] GET /api/auth/me 200 in 6ms
+6:02:38 AM [express] GET /api/email/connections 401 in 2ms :: {"error":"Unauthorized"}
+6:02:38 AM [express] GET /api/email/fetch-history 401 in 1ms :: {"error":"Unauthorized"}
+📧 Gmail OAuth redirect URI: http://localhost:5000/api/auth/callback/google
+6:02:41 AM [express] GET /api/auth/google 302 in 5ms
+📧 Google callback received: { code: true, error: undefined }
+🔄 Exchanging code for Gmail tokens...
+📧 Gmail OAuth redirect URI: http://localhost:5000/api/auth/callback/google
+✅ Gmail tokens saved to gmail-token.json
+✅ Gmail tokens received
+🔄 Getting Gmail user info...
+📧 Gmail OAuth redirect URI: http://localhost:5000/api/auth/callback/google
+✅ Gmail user info: { email: 'karan22k4755@gmail.com', name: 'karan22k4755' }
+[DB Query]: select "id", "email", "name", "provider", "provider_id", "password_hash", "created_at" from "users" where "users"."email" = $1
+✅ Gmail session set: {
+  userId: 'c08a4688-262b-4e28-bb39-8ff099837da7',
+  email: 'karan22k4755@gmail.com',
+  provider: 'google'
+}
+6:09:14 AM [express] GET /api/auth/callback/google 302 in 2519ms
+[DB Query]: select "id", "email", "name", "provider", "provider_id", "password_hash", "created_at" from "users" where "users"."id" = $1
+6:09:15 AM [express] GET /api/auth/me 200 in 229ms :: {"id":"c08a4688-262b-4e28-bb39-8ff099837da7","…
+[DB Query]: select count(*)::int from "resumes" where "resumes"."user_id" = $1
+[DB Query]: select max("analyses"."created_at")::text, max("analysis_results"."score")::int from "analyses" left join "analysis_results" on "analysis_results"."analysis_id" = "analyses"."id" where "analyses"."user_id" = $1  
+6:09:16 AM [express] GET /api/dashboard/stats 200 in 917ms :: {"totalResumes":20,"lastAnalysisDate":…
+[DB Query]: select "id", "user_id", "provider", "is_active", "last_fetched_at", "created_at" from "email_connections" where "email_connections"."user_id" = $1
+[DB Query]: select "id", "user_id", "provider", "is_active", "last_fetched_at", "created_at" from "email_connections" where "email_connections"."user_id" = $1
+[DB Query]: select count(*) from "resumes" where "resumes"."user_id" = $1 AND "resumes"."source" = $2
+6:09:35 AM [express] GET /api/email/connections 200 in 679ms :: [{"id":"85dd37bc-b04e-457e-8c30-d321…
+6:09:36 AM [express] GET /api/email/fetch-history 304 in 1324ms :: [{"id":"85dd37bc-b04e-457e-8c30-d…
+[DB Query]: insert into "resumes" ("id", "user_id", "candidate_name", "email", "phone", "extracted_text", "original_file_name", "file_data", "file_type", "source", "email_subject", "email_date", "fetched_at") values (default, $1, $2, $3, $4, $5, $6, default, $7, $8, default, default, default) returning "id", "user_id", "candidate_name", "email", "phone", "extracted_text", "original_file_name", "file_data", "file_type", "source", "email_subject", "email_date", "fetched_at"
+6:09:44 AM [express] POST /api/resumes/upload 200 in 2127ms :: {"message":"Upload complete: 1 succes…
+[DB Query]: select "id", "user_id", "provider", "is_active", "last_fetched_at", "created_at" from "email_connections" where "email_connections"."user_id" = $1
+[DB Query]: select count(*) from "resumes" where "resumes"."user_id" = $1 AND "resumes"."source" = $2
+6:09:45 AM [express] GET /api/email/fetch-history 304 in 860ms :: [{"id":"85dd37bc-b04e-457e-8c30-d3…
+[DB Query]: select count(*) from "resumes" where "resumes"."user_id" = $1
+6:09:47 AM [express] GET /api/resumes/count 200 in 219ms :: {"count":"21"}
+[DB Query]: select "id", "user_id", "candidate_name", "email", "phone", "extracted_text", "original_file_name", "file_data", "file_type", "source", "email_subject", "email_date", "fetched_at" from "resumes" where "resumes"."user_id" = $1
+[DB Query]: insert into "analyses" ("id", "user_id", "job_prompt", "created_at") values (default, $1, $2, default) returning "id", "user_id", "job_prompt", "created_at"
+[DB Query]: insert into "analysis_results" ("id", "analysis_id", "resume_id", "score", "rank", "strengths", "weaknesses", "summary") values (default, $1, $2, $3, $4, $5, $6, $7), (default, $8, $9, $10, $11, $12, $13, $14), (default, $15, $16, $17, $18, $19, $20, $21), (default, $22, $23, $24, $25, $26, $27, $28), (default, $29, $30, $31, $32, $33, $34, $35), (default, $36, $37, $38, $39, $40, $41, $42), (default, $43, $44, $45, $46, $47, $48, $49), (default, $50, $51, $52, $53, $54, $55, $56), (default, $57, $58, $59, $60, $61, $62, $63), (default, $64, $65, $66, $67, $68, $69, $70), (default, $71, $72, $73, $74, $75, $76, $77), (default, $78, $79, $80, $81, $82, $83, $84), (default, $85, $86, $87, $88, $89, $90, $91), (default, $92, $93, $94, $95, $96, $97, $98), (default, $99, $100, $101, $102, $103, $104, $105), (default, $106, $107, $108, $109, $110, $111, $112), (default, $113, $114, $115, $116, $117, $118, $119), (default, $120, $121, $122, $123, $124, $125, $126), (default, $127, $128, $129, $130, $131, $132, $133), (default, $134, $135, $136, $137, $138, $139, $140), (default, $141, $142, $143, $144, $145, $146, $147)
+6:10:18 AM [express] POST /api/resumes/rank 200 in 20609ms :: {"totalResumes":21,"analysisId":"b71ce…
+[DB Query]: select "id", "user_id", "job_prompt", "created_at" from "analyses" where "analyses"."user_id" = $1 order by "analyses"."created_at" desc limit $2
+[DB Query]: select "analysis_results"."id", "analysis_results"."rank", "analysis_results"."score", "analysis_results"."strengths", "analysis_results"."weaknesses", "analysis_results"."summary", "resumes"."candidate_name", "resumes"."email", "resumes"."phone", "resumes"."extracted_text", "resumes"."original_file_name", "resumes"."file_data", "resumes"."file_type" from "analysis_results" inner join "resumes" on "analysis_results"."resume_id" = "resumes"."id" where "analysis_results"."analysis_id" = $1 order by "analysis_results"."rank"
+6:10:27 AM [express] GET /api/resumes/latest-analysis 200 in 8902ms :: {"id":"b71ce48c-c999-48c0-bc2…
