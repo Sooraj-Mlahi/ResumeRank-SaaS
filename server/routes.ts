@@ -18,7 +18,7 @@ import { extractTextFromCV } from "./cv-extractor";
 import { scoreResume, extractCandidateInfo } from "./openai";
 import { getOutlookAuthUrl, getOutlookAccessToken, testOutlookConnection } from "./outlook-oauth";
 import { getGmailAuthUrl, exchangeCodeForTokens, getGmailUserInfo } from "./gmail-oauth";
-import { insertResumeSchema, insertAnalysisSchema, resumes, analyses, analysisResults, emailConnections, fetchHistory } from "@shared/schema";
+import { insertResumeSchema, insertAnalysisSchema, resumes, analyses, analysisResults, emailConnections, fetchHistory, users } from "@shared/schema";
 import { db } from "./db";
 import { sql, eq, desc } from "drizzle-orm";
 
