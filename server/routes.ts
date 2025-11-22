@@ -148,6 +148,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test login for development - creates or logs in test user
+  app.get("/api/auth/test-login", async (req, res) => {
+    try {
+      const testEmail = "test@resumerank.com";
+      let user = await storage.getUserByEmail(testEmail);
+      
+      if (!user) {
+        const passwordHash = await hash("testpass123", 10);
+        user = await storage.createUser({
+          email: testEmail,
+          name: "Test User",
+          provider: "password",
+          providerId: testEmail,
+          passwordHash,
+        });
+      }
+
+      req.session.userId = user.id;
+      req.session.email = user.email;
+      req.session.provider = "password";
+
+      res.json({ success: true, user, message: "Test user logged in" });
+    } catch (error) {
+      console.error("Test login error:", error);
+      res.status(500).json({ error: "Test login failed" });
+    }
+  });
+
   // Handle Google OAuth redirect at root (matching google-credentials.json)
   // Note: In development, Vite middleware will handle serving the app
   // This route only handles OAuth callbacks that come to root
@@ -712,16 +740,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/resumes/rank", requireAuth, async (req, res) => {
     try {
-      const { jobPrompt } = req.body;
+      const { jobPrompt, resumeIds } = req.body;
 
       if (!jobPrompt || typeof jobPrompt !== "string") {
         return res.status(400).json({ error: "Job prompt is required" });
       }
 
-      // Get all resumes for this user
-      const resumeResults = await db.select()
-        .from(resumes)
-        .where(eq(resumes.userId, req.session.userId!));
+      // Get resumes - either selected ones or all
+      let resumeResults;
+      if (resumeIds && Array.isArray(resumeIds) && resumeIds.length > 0) {
+        // Rank only selected resumes
+        resumeResults = await db.select()
+          .from(resumes)
+          .where(sql`${resumes.userId} = ${req.session.userId!} AND ${resumes.id} IN (${sql.raw(resumeIds.map(id => `'${id}'`).join(','))})`);
+      } else {
+        // Get all resumes for this user
+        resumeResults = await db.select()
+          .from(resumes)
+          .where(eq(resumes.userId, req.session.userId!));
+      }
 
       if (resumeResults.length === 0) {
         return res.status(400).json({ error: "No resumes available to rank" });
@@ -841,6 +878,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Latest analysis error:", error);
       res.status(500).json({ error: "Failed to fetch latest analysis" });
+    }
+  });
+
+  // Get all analyses for user
+  app.get("/api/analyses/list", requireAuth, async (req, res) => {
+    try {
+      const userAnalyses = await db.select({
+        id: analyses.id,
+        jobPrompt: analyses.jobPrompt,
+        createdAt: analyses.createdAt,
+      })
+        .from(analyses)
+        .where(eq(analyses.userId, req.session.userId!))
+        .orderBy(desc(analyses.createdAt));
+
+      // Get top candidate for each analysis
+      const analysesWithResults = await Promise.all(
+        userAnalyses.map(async (analysis) => {
+          const topResult = await db.select({
+            candidateName: resumes.candidateName,
+            score: analysisResults.score,
+          })
+            .from(analysisResults)
+            .innerJoin(resumes, eq(analysisResults.resumeId, resumes.id))
+            .where(eq(analysisResults.analysisId, analysis.id))
+            .orderBy(analysisResults.rank)
+            .limit(1);
+
+          return {
+            ...analysis,
+            topCandidate: topResult[0]?.candidateName || "N/A",
+            topScore: topResult[0]?.score || 0,
+          };
+        })
+      );
+
+      res.json(analysesWithResults);
+    } catch (error) {
+      console.error("List analyses error:", error);
+      res.status(500).json({ error: "Failed to fetch analyses" });
+    }
+  });
+
+  // Download analysis as CSV
+  app.get("/api/analyses/:analysisId/download", requireAuth, async (req, res) => {
+    try {
+      const { analysisId } = req.params;
+
+      // Get analysis
+      const analysis = await db.select()
+        .from(analyses)
+        .where(sql`${analyses.id} = ${analysisId} AND ${analyses.userId} = ${req.session.userId!}`)
+        .limit(1);
+
+      if (analysis.length === 0) {
+        return res.status(404).json({ error: "Analysis not found" });
+      }
+
+      // Get results with resume data
+      const results = await db.select({
+        rank: analysisResults.rank,
+        candidateName: resumes.candidateName,
+        email: resumes.email,
+        phone: resumes.phone,
+        score: analysisResults.score,
+        strengths: analysisResults.strengths,
+        weaknesses: analysisResults.weaknesses,
+        summary: analysisResults.summary,
+      })
+        .from(analysisResults)
+        .innerJoin(resumes, eq(analysisResults.resumeId, resumes.id))
+        .where(eq(analysisResults.analysisId, analysisId))
+        .orderBy(analysisResults.rank);
+
+      // Create CSV
+      const headers = ["Rank", "Candidate Name", "Email", "Phone", "Score", "Strengths", "Weaknesses", "Summary"];
+      const rows = results.map(r => [
+        r.rank,
+        r.candidateName || "Unknown",
+        r.email || "",
+        r.phone || "",
+        r.score,
+        (Array.isArray(r.strengths) ? r.strengths : []).join("; "),
+        (Array.isArray(r.weaknesses) ? r.weaknesses : []).join("; "),
+        r.summary || "",
+      ]);
+
+      const csv = [headers, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
+
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader("Content-Disposition", `attachment; filename="analysis-${analysisId}.csv"`);
+      res.send(csv);
+    } catch (error) {
+      console.error("Download analysis error:", error);
+      res.status(500).json({ error: "Failed to download analysis" });
     }
   });
 
