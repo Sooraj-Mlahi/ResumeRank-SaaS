@@ -1,0 +1,59 @@
+Warning: TT: undefined function: 21
+5:57:52 AM [express] GET /api/email/fetch-history 200 in 899ms :: [{"id":"85dd37bc-b04e-457e-8c30-d3…
+Failed to extract candidate info: BadRequestError: 400 'messages' must contain the word 'json' in some form, to use 'response_format' of type 'json_object'.
+    at Function.generate (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1 (2)\ResumeRank-SaaS-1\node_modules\openai\src\core\error.ts:72:14)
+    at OpenAI.makeStatusError (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1 (2)\ResumeRank-SaaS-1\node_modules\openai\src\client.ts:478:28)
+    at OpenAI.makeRequest (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1 (2)\ResumeRank-SaaS-1\node_modules\openai\src\client.ts:728:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async extractCandidateInfo (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1 (2)\ResumeRank-SaaS-1\server\openai.ts:96:22)
+    at async <anonymous> (C:\Users\Hp\Downloads\Fiverr SaaS builder\upload\ResumeRank-SaaS-1 (2)\ResumeRank-SaaS-1\server\routes.ts:496:33) {
+  status: 400,
+  headers: Headers {
+    date: 'Sat, 22 Nov 2025 00:57:53 GMT',
+    'content-type': 'application/json',
+    'content-length': '219',
+    connection: 'keep-alive',
+    'access-control-expose-headers': 'X-Request-ID',
+    'openai-organization': 'user-7c3ppvhfkqpwtf4jgcgpvjdp',
+    'openai-processing-ms': '12',
+    'openai-project': 'proj_yfW8r8UxqZK1VOaU6CuhWaGV',
+    'openai-version': '2020-10-01',
+    'x-envoy-upstream-service-time': '34',
+    'x-ratelimit-limit-requests': '10000',
+    'x-ratelimit-limit-tokens': '200000',
+    'x-ratelimit-remaining-requests': '9997',
+    'x-ratelimit-remaining-tokens': '199727',
+    'x-ratelimit-reset-requests': '23.978s',
+    'x-ratelimit-reset-tokens': '81ms',
+    'x-request-id': 'req_22500b78c9144e21b1c34683b2a0eace',
+    'x-openai-proxy-wasm': 'v0.1',
+    'cf-cache-status': 'DYNAMIC',
+    'set-cookie': '__cf_bm=3DevLQfYX3f6MVh.rhI.lgRAn4u85rd8SoDp1Dumi7o-1763773073-1.0.1.1-k.iRnlXHTF.6i4FoR7hOmFNJAw5ncx8zhLhXAXu6Rofg81hhgi..faaV8Jpdya1JDA8Su5NEIZZl.X6pjblaKf3wW74z5BzTXdaOLNGSg6A; path=/; expires=Sat, 22-Nov-25 01:27:53 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=A.AobO8wR8VN2GE_BmIsvNtCGv0auCOqk1x3SvRuA_A-1763773073583-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None',
+    'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',
+    'x-content-type-options': 'nosniff',
+    server: 'cloudflare',
+    'cf-ray': '9a2479abeddc90aa-KHI',
+    'alt-svc': 'h3=":443"; ma=86400'
+  },
+  requestID: 'req_22500b78c9144e21b1c34683b2a0eace',
+  error: {
+    message: "'messages' must contain the word 'json' in some form, to use 'response_format' of type 'json_object'.",
+    type: 'invalid_request_error',
+    param: 'messages',
+    code: null
+  },
+  code: null,
+  param: 'messages',
+  type: 'invalid_request_error'
+}
+[DB Query]: insert into "resumes" ("id", "user_id", "candidate_name", "email", "phone", "extracted_text", "original_file_name", "file_data", "file_type", "source", "email_subject", "email_date", "fetched_at") values (default, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, default) returning "id", "user_id", "candidate_name", "email", "phone", "extracted_text", "original_file_name", "file_data", "file_type", "source", "email_subject", "email_date", "fetched_at"
+[DB Query]: select "id", "user_id", "provider", "is_active", "last_fetched_at", "created_at" from "email_connections" where "email_connections"."user_id" = $1 AND "email_connections"."provider" = 'gmail' limit $2
+[DB Query]: update "email_connections" set "last_fetched_at" = $1 where "email_connections"."id" = $2
+5:57:55 AM [express] POST /api/email/fetch/gmail 200 in 9461ms :: {"count":2}
+[DB Query]: select "id", "user_id", "provider", "is_active", "last_fetched_at", "created_at" from "email_connections" where "email_connections"."user_id" = $1
+[DB Query]: select count(*) from "resumes" where "resumes"."user_id" = $1 AND "resumes"."source" = $2
+5:57:55 AM [express] GET /api/email/fetch-history 200 in 431ms :: [{"id":"85dd37bc-b04e-457e-8c30-d3…
+[DB Query]: select "id", "user_id", "candidate_name", "email", "phone", "extracted_text", "original_file_name", "file_data", "file_type", "source", "email_subject", "email_date", "fetched_at" from "resumes" where "resumes"."user_id" = $1
+[DB Query]: insert into "analyses" ("id", "user_id", "job_prompt", "created_at") values (default, $1, $2, default) returning "id", "user_id", "job_prompt", "created_at"
+[DB Query]: insert into "analysis_results" ("id", "analysis_id", "resume_id", "score", "rank", "strengths", "weaknesses", "summary") values (default, $1, $2, $3, $4, $5, $6, $7), (default, $8, $9, $10, $11, $12, $13, $14), (default, $15, $16, $17, $18, $19, $20, $21), (default, $22, $23, $24, $25, $26, $27, $28), (default, $29, $30, $31, $32, $33, $34, $35), (default, $36, $37, $38, $39, $40, $41, $42), (default, $43, $44, $45, $46, $47, $48, $49), (default, $50, $51, $52, $53, $54, $55, $56), (default, $57, $58, $59, $60, $61, $62, $63), (default, $64, $65, $66, $67, $68, $69, $70), (default, $71, $72, $73, $74, $75, $76, $77), (default, $78, $79, $80, $81, $82, $83, $84), (default, $85, $86, $87, $88, $89, $90, $91), (default, $92, $93, $94, $95, $96, $97, $98), (default, $99, $100, $101, $102, $103, $104, $105), (default, $106, $107, $108, $109, $110, $111, $112), (default, $113, $114, $115, $116, $117, $118, $119), (default, $120, $121, $122, $123, $124, $125, $126), (default, $127, $128, $129, $130, $131, $132, $133), (default, $134, $135, $136, $137, $138, $139, $140)
+5:58:24 AM [express] POST /api/resumes/rank 200 in 14771ms :: {"totalResumes":20,"analysisId":"fb547…
