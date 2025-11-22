@@ -152,17 +152,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/auth/test-login", async (req, res) => {
     try {
       const testEmail = "test@resumerank.com";
-      let user = await storage.getUserByEmail(testEmail);
       
-      if (!user) {
-        const passwordHash = await hash("testpass123", 10);
-        user = await storage.createUser({
+      // Try to find existing user - use raw query to avoid schema issues
+      const existingUsers = await db.select()
+        .from(users)
+        .where(eq(users.email, testEmail))
+        .limit(1);
+      
+      let user;
+      if (existingUsers.length > 0) {
+        user = existingUsers[0];
+      } else {
+        // Create new test user
+        const [newUser] = await db.insert(users).values({
           email: testEmail,
           name: "Test User",
           provider: "password",
           providerId: testEmail,
-          passwordHash,
-        });
+          passwordHash: await hash("testpass123", 10),
+        }).returning();
+        user = newUser;
       }
 
       req.session.userId = user.id;
