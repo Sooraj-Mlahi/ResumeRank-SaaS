@@ -49,10 +49,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     })
   );
 
-  // Authentication middleware - now enabled
+  // Authentication middleware - DISABLED FOR TESTING - auto-login test user
   const requireAuth = async (req: any, res: any, next: any) => {
+    // Auto-login test user if not authenticated
     if (!req.session.userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      try {
+        const testEmail = "test@resumerank.com";
+        let user = await storage.getUserByEmail(testEmail);
+        
+        if (!user) {
+          const passwordHash = await hash("testpass123", 10);
+          user = await storage.createUser({
+            email: testEmail,
+            name: "Test User",
+            provider: "password",
+            providerId: testEmail,
+            passwordHash,
+          });
+        }
+        
+        req.session.userId = user.id;
+        req.session.email = user.email;
+        req.session.provider = "password";
+      } catch (error) {
+        console.error("Auto-login error:", error);
+        return res.status(500).json({ error: "Auto-login failed" });
+      }
     }
     next();
   };
