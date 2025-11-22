@@ -21,17 +21,6 @@ export default function Login() {
     window.location.href = "/api/auth/microsoft";
   };
 
-  const handleTestLogin = async () => {
-    try {
-      const response = await fetch("/api/auth/test-login");
-      if (response.ok) {
-        window.location.href = "/";
-      }
-    } catch (err) {
-      setError("Test login failed");
-    }
-  };
-
   const passwordMutation = useMutation({
     mutationFn: async (credentials: { email: string; password: string }) => {
       const endpoint = isSignup ? "/api/auth/signup" : "/api/auth/password-login";
@@ -154,15 +143,6 @@ export default function Login() {
             >
               <Mail className="w-5 h-5" />
               Continue with Microsoft
-            </Button>
-
-            <Button
-              onClick={handleTestLogin}
-              variant="secondary"
-              className="w-full"
-              data-testid="button-test-login"
-            >
-              Test Login
             </Button>
 
             <div className="text-center pt-2">
