@@ -98,11 +98,11 @@ export async function extractCandidateInfo(resumeText: string): Promise<{
       messages: [
         {
           role: "system",
-          content: `Extract:{"name":"X","email":"X@X.com or null","phone":"XXX or null"}`,
+          content: `Extract candidate info as JSON: {"name":"candidate name","email":"email@example.com or null","phone":"phone number or null"}`,
         },
         {
           role: "user",
-          content: resumeText.slice(0, 1000),
+          content: `Extract name, email, phone from resume:\n${resumeText.slice(0, 1000)}`,
         },
       ],
       response_format: { type: "json_object" },
