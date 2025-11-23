@@ -360,10 +360,23 @@ npm start
 6. Test resume ranking with AI
 7. Deploy when ready using Replit's publish feature
 
+## Windows Setup
+
+If running on Windows with Node.js 24, you may encounter esbuild errors. See [WINDOWS_SETUP.md](WINDOWS_SETUP.md) for solutions.
+
+Quick fix for Windows:
+```bash
+set NODE_OPTIONS=--max-old-space-size=4096
+npm run dev
+```
+
 ## Version History
 - v1.0 - Initial release with OAuth and password authentication
 - Optimized AI prompts for 70% token reduction
 - Added Profile and Settings pages
 - Enabled real authentication (no more test users)
 - Unified resume processing pipeline across all 3 sources
+- Added selective resume ranking (choose which resumes to analyze)
+- Added analysis history and CSV export
+- Fixed Windows Node.js 24 compatibility issues
 
