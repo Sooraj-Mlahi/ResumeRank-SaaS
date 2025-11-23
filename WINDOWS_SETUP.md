@@ -2,7 +2,21 @@
 
 If you're getting esbuild errors on Windows with Node.js 24, follow these steps:
 
-## Option 1: Environment Variable Fix (Recommended)
+## Option 1: Downgrade Node.js to 20.11.6 (Recommended)
+
+This is the easiest and most stable solution:
+
+1. Uninstall Node.js 24 from your system
+2. Download Node.js 20.11.6 LTS from https://nodejs.org/en/download/
+3. Install it
+4. Run:
+   ```bash
+   npm run dev
+   ```
+
+Node 20.11.6 has no Windows compatibility issues and is a stable LTS release.
+
+## Option 2: Environment Variable Fix
 
 Set this environment variable before running the app:
 
@@ -36,9 +50,9 @@ yarn install
 yarn dev
 ```
 
-## Option 4: Downgrade Node.js to v22
+## Option 4: Downgrade to Node.js v22 or v20
 
-If none of the above work, downgrade to Node.js v22 LTS:
+If the environment variable fixes don't work, downgrade to Node.js v22 or v20 LTS:
 
 1. Uninstall Node.js 24
 2. Download Node.js v22 LTS from https://nodejs.org/
