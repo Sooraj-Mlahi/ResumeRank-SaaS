@@ -706,6 +706,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/resumes/list", requireAuth, async (req, res) => {
+    try {
+      const userResumes = await db.select({
+        id: resumes.id,
+        candidateName: resumes.candidateName,
+        originalFileName: resumes.originalFileName,
+        email: resumes.email,
+        source: resumes.source,
+      })
+        .from(resumes)
+        .where(eq(resumes.userId, req.session.userId!))
+        .orderBy(desc(resumes.fetchedAt));
+      
+      res.json(userResumes);
+    } catch (error) {
+      console.error("Resume list error:", error);
+      res.status(500).json({ error: "Failed to get resumes" });
+    }
+  });
+
   // Multer configuration for file uploads
   const upload = multer({
     storage: multer.memoryStorage(),
