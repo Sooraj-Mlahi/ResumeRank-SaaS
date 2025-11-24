@@ -1115,6 +1115,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/admin/users/:id/activity", requireAdmin, async (req, res) => {
+    try {
+      const activities = await storage.getUserActivities(req.params.id, 50);
+      res.json(activities);
+    } catch (error) {
+      console.error("Get user activity error:", error);
+      res.status(500).json({ error: "Failed to fetch user activity" });
+    }
+  });
+
   // Clear analysis history
   app.post("/api/analyses/clear", requireAuth, async (req, res) => {
     try {

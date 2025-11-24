@@ -4,6 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { format } from "date-fns";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface User {
   id: string;
@@ -16,10 +22,30 @@ interface User {
   analysisCount: number;
 }
 
+interface UserActivity {
+  id: string;
+  userId: string;
+  action: string;
+  details: any;
+  createdAt: string;
+}
+
 export default function AdminUsers() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const { data: users, isLoading } = useQuery<User[]>({
     queryKey: ["/api/admin/users"],
+  });
+
+  const { data: activities } = useQuery<UserActivity[]>({
+    queryKey: ["/api/admin/users", selectedUserId, "activity"],
+    enabled: !!selectedUserId,
+    queryFn: async () => {
+      const res = await fetch(`/api/admin/users/${selectedUserId}/activity`, {
+        credentials: "include",
+      });
+      return res.json();
+    },
   });
 
   const filteredUsers = users?.filter(u => 
@@ -75,7 +101,11 @@ export default function AdminUsers() {
                       <td className="text-center py-3 px-4">{user.analysisCount}</td>
                       <td className="py-3 px-4">{format(new Date(user.createdAt), "MMM d, yyyy")}</td>
                       <td className="py-3 px-4">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setSelectedUserId(user.id)}
+                        >
                           View Activity
                         </Button>
                       </td>
@@ -86,6 +116,36 @@ export default function AdminUsers() {
             </div>
           </CardContent>
         </Card>
+
+        <Dialog open={!!selectedUserId} onOpenChange={(open) => !open && setSelectedUserId(null)}>
+          <DialogContent className="max-w-2xl max-h-96 overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>User Activity</DialogTitle>
+            </DialogHeader>
+            
+            {activities && activities.length > 0 ? (
+              <div className="space-y-4">
+                {activities.map(activity => (
+                  <div key={activity.id} className="border rounded p-3 text-sm">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="font-semibold capitalize">{activity.action}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {format(new Date(activity.createdAt), "MMM d, yyyy HH:mm")}
+                      </span>
+                    </div>
+                    {activity.details && (
+                      <pre className="text-xs bg-muted p-2 rounded overflow-auto">
+                        {JSON.stringify(activity.details, null, 2)}
+                      </pre>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-muted-foreground py-4">No activity found</p>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
