@@ -49,71 +49,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     })
   );
 
-  // Authentication middleware - DISABLED FOR TESTING - auto-login test user
+  // Authentication middleware - Real authentication required
   const requireAuth = async (req: any, res: any, next: any) => {
-    // Auto-login test user if not authenticated
     if (!req.session.userId) {
-      try {
-        const testEmail = "test@resumerank.com";
-        let user = await storage.getUserByEmail(testEmail);
-        
-        if (!user) {
-          const passwordHash = await hash("testpass123", 10);
-          user = await storage.createUser({
-            email: testEmail,
-            name: "Test User",
-            provider: "password",
-            providerId: testEmail,
-            passwordHash,
-          });
-        }
-        
-        req.session.userId = user.id;
-        req.session.email = user.email;
-        req.session.provider = "password";
-      } catch (error) {
-        console.error("Auto-login error:", error);
-        return res.status(500).json({ error: "Auto-login failed" });
-      }
+      return res.status(401).json({ error: "Authentication required" });
     }
     next();
   };
 
   // Auth routes
   app.get("/api/auth/me", async (req, res) => {
-    // Auto-login test user if not authenticated
     if (!req.session.userId) {
-      try {
-        const testEmail = "test@resumerank.com";
-        let user = await storage.getUserByEmail(testEmail);
-        
-        if (!user) {
-          const passwordHash = await hash("testpass123", 10);
-          user = await storage.createUser({
-            email: testEmail,
-            name: "Test User",
-            provider: "password",
-            providerId: testEmail,
-            passwordHash,
-          });
-        }
-        
-        req.session.userId = user.id;
-        req.session.email = user.email;
-        req.session.provider = "password";
-
-        res.json({
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          provider: user.provider,
-          isAdmin: user.isAdmin,
-        });
-        return;
-      } catch (error) {
-        console.error("Auto-login error:", error);
-        return res.json(null);
-      }
+      return res.json(null);
     }
 
     const user = await storage.getUser(req.session.userId);
