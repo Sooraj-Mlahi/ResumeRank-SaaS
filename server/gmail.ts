@@ -88,13 +88,27 @@ export interface EmailAttachment {
   date: Date;
 }
 
-export async function fetchCVsFromGmail(): Promise<EmailAttachment[]> {
+export async function fetchCVsFromGmail(startDate?: string, endDate?: string): Promise<EmailAttachment[]> {
   try {
     const gmail = await getUncachableGmailClient();
     const attachments: EmailAttachment[] = [];
 
     // Search for emails with CV/resume attachments
-    const searchQuery = 'has:attachment (filename:pdf OR filename:doc OR filename:docx) (subject:resume OR subject:cv OR subject:application OR body:resume OR body:cv)';
+    let searchQuery = 'has:attachment (filename:pdf OR filename:doc OR filename:docx) (subject:resume OR subject:cv OR subject:application OR body:resume OR body:cv)';
+    
+    // Add date filters if provided
+    if (startDate) {
+      searchQuery += ` after:${startDate}`;
+    }
+    if (endDate) {
+      // Add one day to endDate to include the entire end date
+      const end = new Date(endDate);
+      end.setDate(end.getDate() + 1);
+      const formattedEndDate = end.toISOString().split('T')[0];
+      searchQuery += ` before:${formattedEndDate}`;
+    }
+    
+    console.log('Gmail search query:', searchQuery);
     
     const response = await gmail.users.messages.list({
       userId: 'me',

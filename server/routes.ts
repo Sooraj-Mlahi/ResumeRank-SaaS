@@ -631,12 +631,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get Outlook access token from session
       const accessToken = req.session.outlookAccessToken;
+      const { startDate, endDate } = req.body;
       
       if (!accessToken) {
         return res.status(401).json({ error: "Outlook not connected. Please authenticate first." });
       }
 
-      const processedCVs = await fetchCVsFromOutlook(accessToken);
+      const processedCVs = await fetchCVsFromOutlook(accessToken, startDate, endDate);
       let processedCount = 0;
 
       for (const cv of processedCVs) {

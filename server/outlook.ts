@@ -44,7 +44,7 @@ const SUPPORTED_CV_TYPES = [
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 ];
 
-export async function fetchCVsFromOutlook(accessToken: string): Promise<ProcessedCV[]> {
+export async function fetchCVsFromOutlook(accessToken: string, startDate?: string, endDate?: string): Promise<ProcessedCV[]> {
   console.log('Starting Outlook CV fetch...');
   
   try {
@@ -59,6 +59,25 @@ export async function fetchCVsFromOutlook(accessToken: string): Promise<Processe
     
     for (const message of messages) {
       try {
+        // Filter by date range if provided
+        if (startDate || endDate) {
+          const messageDate = new Date(message.receivedDateTime);
+          
+          if (startDate) {
+            const start = new Date(startDate);
+            if (messageDate < start) {
+              continue;
+            }
+          }
+          
+          if (endDate) {
+            const end = new Date(endDate);
+            end.setDate(end.getDate() + 1); // Include entire end date
+            if (messageDate >= end) {
+              continue;
+            }
+          }
+        }
         // Get attachments for this message
         const attachments = await getOutlookAttachments(accessToken, message.id);
         totalAttachments += attachments.length;
