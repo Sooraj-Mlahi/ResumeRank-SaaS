@@ -37,6 +37,10 @@ export default function FetchCVs() {
   const [isFetching, setIsFetching] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [gmailStartDate, setGmailStartDate] = useState<string>("");
+  const [gmailEndDate, setGmailEndDate] = useState<string>("");
+  const [outlookStartDate, setOutlookStartDate] = useState<string>("");
+  const [outlookEndDate, setOutlookEndDate] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: connections, isLoading: connectionsLoading } = useQuery<EmailConnection[]>({
@@ -75,7 +79,8 @@ export default function FetchCVs() {
   });
 
   const fetchGmailMutation = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/email/fetch/gmail", {}),
+    mutationFn: (params: { startDate?: string; endDate?: string }) => 
+      apiRequest("POST", "/api/email/fetch/gmail", params),
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/email/fetch-history"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
@@ -123,7 +128,8 @@ export default function FetchCVs() {
   });
 
   const fetchOutlookMutation = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/email/fetch/outlook", {}),
+    mutationFn: (params: { startDate?: string; endDate?: string }) =>
+      apiRequest("POST", "/api/email/fetch/outlook", params),
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/email/fetch-history"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
@@ -145,12 +151,18 @@ export default function FetchCVs() {
 
   const handleFetchGmail = async () => {
     setIsFetching(true);
-    fetchGmailMutation.mutate();
+    fetchGmailMutation.mutate({ 
+      startDate: gmailStartDate || undefined, 
+      endDate: gmailEndDate || undefined 
+    });
   };
 
   const handleFetchOutlook = async () => {
     setIsFetching(true);
-    fetchOutlookMutation.mutate();
+    fetchOutlookMutation.mutate({ 
+      startDate: outlookStartDate || undefined, 
+      endDate: outlookEndDate || undefined 
+    });
   };
 
   const uploadFilesMutation = useMutation({
