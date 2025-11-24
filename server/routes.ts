@@ -730,8 +730,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 10 * 1024 * 1024, // 10MB limit
-      files: 10, // Max 10 files
+      fileSize: 10 * 1024 * 1024, // 10MB per file limit
     },
     fileFilter: (req, file, cb) => {
       const allowedTypes = [
@@ -747,8 +746,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload resumes endpoint
-  app.post("/api/resumes/upload", requireAuth, upload.array('files', 10), async (req, res) => {
+  // Upload resumes endpoint (unlimited files)
+  app.post("/api/resumes/upload", requireAuth, upload.array('files'), async (req, res) => {
     try {
       const files = req.files as Express.Multer.File[];
       
