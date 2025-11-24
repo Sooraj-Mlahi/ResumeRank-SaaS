@@ -13,6 +13,9 @@ import RankResumes from "@/pages/rank-resumes";
 import Results from "@/pages/results";
 import Profile from "@/pages/profile";
 import Settings from "@/pages/settings";
+import AdminDashboard from "@/pages/admin-dashboard";
+import AdminUsers from "@/pages/admin-users";
+import AdminResumes from "@/pages/admin-resumes";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 
@@ -21,6 +24,7 @@ interface User {
   email: string;
   name?: string;
   provider: string;
+  isAdmin?: number;
 }
 
 function AuthenticatedRoutes() {
@@ -59,6 +63,9 @@ function AuthenticatedRoutes() {
         <Route path="/results" component={Results} />
         <Route path="/profile" component={Profile} />
         <Route path="/settings" component={Settings} />
+        <Route path="/admin" component={AdminDashboard} />
+        <Route path="/admin/users" component={AdminUsers} />
+        <Route path="/admin/resumes" component={AdminResumes} />
         <Route component={NotFound} />
       </Switch>
     </div>

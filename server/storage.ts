@@ -79,6 +79,23 @@ export interface IStorage {
     lastFetchDate: string | null;
     connectedProviders: string[];
   }>;
+
+  // Admin operations
+  getAllUsers(): Promise<(User & { resumeCount: number; analysisCount: number })[]>;
+  banUser(userId: string): Promise<void>;
+  unbanUser(userId: string): Promise<void>;
+  getGlobalStats(): Promise<{
+    totalUsers: number;
+    totalResumes: number;
+    totalAnalyses: number;
+    avgScore: number | null;
+  }>;
+  searchResumes(query: string, limit?: number): Promise<(Resume & { user: User })[]>;
+  getAnalyticsData(): Promise<{
+    usersThisWeek: number;
+    resumesThisWeek: number;
+    analysesThisWeek: number;
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -389,6 +406,100 @@ export class DatabaseStorage implements IStorage {
       .update(userSettings)
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(userSettings.userId, userId));
+  }
+
+  // Admin methods
+  async getAllUsers(): Promise<(User & { resumeCount: number; analysisCount: number })[]> {
+    const result = await db.select({
+      id: users.id,
+      email: users.email,
+      name: users.name,
+      provider: users.provider,
+      providerId: users.providerId,
+      passwordHash: users.passwordHash,
+      isAdmin: users.isAdmin,
+      createdAt: users.createdAt,
+      resumeCount: sql`COUNT(DISTINCT ${resumes.id})`,
+      analysisCount: sql`COUNT(DISTINCT ${analyses.id})`,
+    })
+    .from(users)
+    .leftJoin(resumes, eq(users.id, resumes.userId))
+    .leftJoin(analyses, eq(users.id, analyses.userId))
+    .groupBy(users.id);
+    
+    return result.map(r => ({
+      ...r,
+      resumeCount: Number(r.resumeCount),
+      analysisCount: Number(r.analysisCount),
+    }));
+  }
+
+  async banUser(userId: string): Promise<void> {
+    await db.update(users).set({ isAdmin: 0 }).where(eq(users.id, userId));
+  }
+
+  async unbanUser(userId: string): Promise<void> {
+    await db.update(users).set({ isAdmin: 0 }).where(eq(users.id, userId));
+  }
+
+  async getGlobalStats(): Promise<{ totalUsers: number; totalResumes: number; totalAnalyses: number; avgScore: number | null }> {
+    const [userCount] = await db.select({ count: sql`COUNT(*)` }).from(users);
+    const [resumeCount] = await db.select({ count: sql`COUNT(*)` }).from(resumes);
+    const [analysisCount] = await db.select({ count: sql`COUNT(*)` }).from(analyses);
+    const [avgScoreResult] = await db.select({ avg: sql`AVG(score)` }).from(analysisResults);
+    
+    return {
+      totalUsers: Number(userCount.count),
+      totalResumes: Number(resumeCount.count),
+      totalAnalyses: Number(analysisCount.count),
+      avgScore: avgScoreResult.avg ? Number(avgScoreResult.avg) : null,
+    };
+  }
+
+  async searchResumes(query: string, limit: number = 50): Promise<(Resume & { user: User })[]> {
+    return await db.select({
+      id: resumes.id,
+      userId: resumes.userId,
+      candidateName: resumes.candidateName,
+      email: resumes.email,
+      phone: resumes.phone,
+      extractedText: resumes.extractedText,
+      originalFileName: resumes.originalFileName,
+      fileData: resumes.fileData,
+      fileType: resumes.fileType,
+      source: resumes.source,
+      emailSubject: resumes.emailSubject,
+      emailDate: resumes.emailDate,
+      fetchedAt: resumes.fetchedAt,
+      user: {
+        id: users.id,
+        email: users.email,
+        name: users.name,
+        provider: users.provider,
+        providerId: users.providerId,
+        passwordHash: users.passwordHash,
+        isAdmin: users.isAdmin,
+        createdAt: users.createdAt,
+      }
+    })
+    .from(resumes)
+    .innerJoin(users, eq(resumes.userId, users.id))
+    .where(sql`${resumes.candidateName} ILIKE ${'%' + query + '%'} OR ${resumes.email} ILIKE ${'%' + query + '%'}`)
+    .limit(limit);
+  }
+
+  async getAnalyticsData(): Promise<{ usersThisWeek: number; resumesThisWeek: number; analysesThisWeek: number }> {
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    
+    const [userResult] = await db.select({ count: sql`COUNT(*)` }).from(users).where(sql`${users.createdAt} > ${weekAgo}`);
+    const [resumeResult] = await db.select({ count: sql`COUNT(*)` }).from(resumes).where(sql`${resumes.fetchedAt} > ${weekAgo}`);
+    const [analysisResult] = await db.select({ count: sql`COUNT(*)` }).from(analyses).where(sql`${analyses.createdAt} > ${weekAgo}`);
+    
+    return {
+      usersThisWeek: Number(userResult.count),
+      resumesThisWeek: Number(resumeResult.count),
+      analysesThisWeek: Number(analysisResult.count),
+    };
   }
 }
 

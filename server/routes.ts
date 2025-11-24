@@ -1049,6 +1049,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin middleware
+  const requireAdmin = async (req: any, res: any, next: any) => {
+    await requireAuth(req, res, () => {});
+    
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.isAdmin !== 1) {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+    next();
+  };
+
+  // Admin endpoints
+  app.get("/api/admin/users", requireAdmin, async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Get admin users error:", error);
+      res.status(500).json({ error: "Failed to fetch users" });
+    }
+  });
+
+  app.get("/api/admin/stats", requireAdmin, async (req, res) => {
+    try {
+      const stats = await storage.getGlobalStats();
+      const analytics = await storage.getAnalyticsData();
+      res.json({ ...stats, ...analytics });
+    } catch (error) {
+      console.error("Get admin stats error:", error);
+      res.status(500).json({ error: "Failed to fetch stats" });
+    }
+  });
+
+  app.post("/api/admin/users/:id/ban", requireAdmin, async (req, res) => {
+    try {
+      await storage.banUser(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Ban user error:", error);
+      res.status(500).json({ error: "Failed to ban user" });
+    }
+  });
+
+  app.get("/api/admin/resumes", requireAdmin, async (req, res) => {
+    try {
+      const query = (req.query.q as string) || "";
+      const limit = parseInt(req.query.limit as string) || 50;
+      const results = await storage.searchResumes(query, limit);
+      res.json(results);
+    } catch (error) {
+      console.error("Search resumes error:", error);
+      res.status(500).json({ error: "Failed to search resumes" });
+    }
+  });
+
+  app.get("/api/admin/check", requireAuth, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.session.userId);
+      res.json({ isAdmin: user?.isAdmin === 1 });
+    } catch (error) {
+      res.json({ isAdmin: false });
+    }
+  });
+
   // Clear analysis history
   app.post("/api/analyses/clear", requireAuth, async (req, res) => {
     try {
