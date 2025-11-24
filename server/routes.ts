@@ -107,6 +107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: user.email,
           name: user.name,
           provider: user.provider,
+          isAdmin: user.isAdmin,
         });
         return;
       } catch (error) {
@@ -125,6 +126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       email: user.email,
       name: user.name,
       provider: user.provider,
+      isAdmin: user.isAdmin,
     });
   });
 

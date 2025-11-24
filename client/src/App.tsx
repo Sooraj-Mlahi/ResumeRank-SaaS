@@ -24,7 +24,7 @@ interface User {
   email: string;
   name?: string;
   provider: string;
-  isAdmin?: number;
+  isAdmin: number;
 }
 
 function AuthenticatedRoutes() {

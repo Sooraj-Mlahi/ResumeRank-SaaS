@@ -16,6 +16,7 @@ interface HeaderProps {
   user?: {
     name?: string;
     email: string;
+    isAdmin?: number;
   } | null;
 }
 
