@@ -129,6 +129,29 @@ export function Header({ user }: HeaderProps) {
                     Settings
                   </DropdownMenuItem>
                 </Link>
+                {user?.isAdmin === 1 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <Link href="/admin" asChild>
+                      <DropdownMenuItem>
+                        <FileText className="mr-2 h-4 w-4" />
+                        Admin Dashboard
+                      </DropdownMenuItem>
+                    </Link>
+                    <Link href="/admin/users" asChild>
+                      <DropdownMenuItem>
+                        <User className="mr-2 h-4 w-4" />
+                        Manage Users
+                      </DropdownMenuItem>
+                    </Link>
+                    <Link href="/admin/resumes" asChild>
+                      <DropdownMenuItem>
+                        <FileText className="mr-2 h-4 w-4" />
+                        Browse Resumes
+                      </DropdownMenuItem>
+                    </Link>
+                  </>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} data-testid="button-logout">
                   <LogOut className="mr-2 h-4 w-4" />
