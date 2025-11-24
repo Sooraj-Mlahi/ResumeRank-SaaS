@@ -189,6 +189,8 @@ export default function FetchCVs() {
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/email/fetch-history"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/resumes/list"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/resumes/count"] });
       toast({
         title: "Upload Successful",
         description: `${data.count} resume(s) uploaded successfully`,
