@@ -12,6 +12,7 @@ export const users = pgTable("users", {
   provider: text("provider").notNull(), // 'google', 'microsoft', or 'password'
   providerId: text("provider_id").notNull(),
   passwordHash: text("password_hash"), // optional - only for password auth
+  isAdmin: integer("is_admin").notNull().default(0), // 1 = admin, 0 = regular user
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
   emailIdx: index("users_email_idx").on(table.email),
