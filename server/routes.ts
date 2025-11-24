@@ -559,7 +559,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/email/fetch/gmail", requireAuth, async (req, res) => {
     try {
-      const attachments = await fetchCVsFromGmail();
+      const { startDate, endDate } = req.body;
+      const attachments = await fetchCVsFromGmail(startDate, endDate);
       let processedCount = 0;
 
       for (const attachment of attachments) {

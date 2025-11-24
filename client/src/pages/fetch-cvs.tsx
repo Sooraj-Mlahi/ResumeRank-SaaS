@@ -3,6 +3,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Mail, CheckCircle, XCircle, Loader2, Download, Calendar, Building2, Upload, FileUp } from "lucide-react";
 import { SiGoogle } from "react-icons/si";
 import { useToast } from "@/hooks/use-toast";
@@ -309,6 +311,31 @@ export default function FetchCVs() {
                     Last fetched: {format(new Date(gmailConnection.lastFetchedAt), "PPp")}
                   </div>
                 )}
+                <div className="space-y-3 py-2 border-t border-b">
+                  <div className="text-sm font-medium">Filter by Date (Optional)</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="gmail-start-date" className="text-xs">Start Date</Label>
+                      <Input
+                        id="gmail-start-date"
+                        type="date"
+                        value={gmailStartDate}
+                        onChange={(e) => setGmailStartDate(e.target.value)}
+                        className="h-8"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="gmail-end-date" className="text-xs">End Date</Label>
+                      <Input
+                        id="gmail-end-date"
+                        type="date"
+                        value={gmailEndDate}
+                        onChange={(e) => setGmailEndDate(e.target.value)}
+                        className="h-8"
+                      />
+                    </div>
+                  </div>
+                </div>
                 <Button
                   onClick={handleFetchGmail}
                   disabled={isFetching}
@@ -388,6 +415,31 @@ export default function FetchCVs() {
                     Last fetched: {format(new Date(outlookConnection.lastFetchedAt), "PPp")}
                   </div>
                 )}
+                <div className="space-y-3 py-2 border-t border-b">
+                  <div className="text-sm font-medium">Filter by Date (Optional)</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="outlook-start-date" className="text-xs">Start Date</Label>
+                      <Input
+                        id="outlook-start-date"
+                        type="date"
+                        value={outlookStartDate}
+                        onChange={(e) => setOutlookStartDate(e.target.value)}
+                        className="h-8"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="outlook-end-date" className="text-xs">End Date</Label>
+                      <Input
+                        id="outlook-end-date"
+                        type="date"
+                        value={outlookEndDate}
+                        onChange={(e) => setOutlookEndDate(e.target.value)}
+                        className="h-8"
+                      />
+                    </div>
+                  </div>
+                </div>
                 <Button
                   onClick={handleFetchOutlook}
                   disabled={isFetching}
