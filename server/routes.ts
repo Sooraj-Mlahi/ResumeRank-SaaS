@@ -667,6 +667,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Log user activity - Outlook fetch
+      await storage.createUserActivity({
+        userId: req.session.userId!,
+        action: "outlook_fetch",
+        details: { 
+          processedCount,
+          totalCVs: processedCVs.length,
+          startDate,
+          endDate
+        },
+        ipAddress: req.ip,
+        userAgent: req.get("user-agent"),
+      });
+
       res.json({ count: processedCount });
     } catch (error) {
       console.error("Fetch Outlook CVs error:", error);
