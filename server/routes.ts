@@ -112,6 +112,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.session.email = user.email;
       req.session.provider = "password";
 
+      // Log user activity - signup
+      await storage.createUserActivity({
+        userId: user.id,
+        action: "signup",
+        details: { provider: "password", email },
+        ipAddress: req.ip,
+        userAgent: req.get("user-agent"),
+      });
+
       res.json({ success: true, user });
     } catch (error) {
       console.error("Signup error:", error);
@@ -141,6 +150,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.session.userId = user.id;
       req.session.email = user.email;
       req.session.provider = "password";
+
+      // Log user activity - login
+      await storage.createUserActivity({
+        userId: user.id,
+        action: "login",
+        details: { provider: "password", email },
+        ipAddress: req.ip,
+        userAgent: req.get("user-agent"),
+      });
 
       res.json({ success: true, user });
     } catch (error) {
