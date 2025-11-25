@@ -587,6 +587,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Log user activity - Gmail fetch
+      await storage.createUserActivity({
+        userId: req.session.userId!,
+        action: "gmail_fetch",
+        details: { 
+          processedCount,
+          totalAttachments: attachments.length,
+          startDate,
+          endDate
+        },
+        ipAddress: req.ip,
+        userAgent: req.get("user-agent"),
+      });
+
       res.json({ count: processedCount });
     } catch (error) {
       console.error("Fetch Gmail CVs error:", error);
@@ -766,6 +780,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Log user activity - resume upload
+      await storage.createUserActivity({
+        userId,
+        action: "resume_upload",
+        details: { 
+          successful: uploadResults.successful,
+          failed: uploadResults.failed,
+          totalFiles: files.length
+        },
+        ipAddress: req.ip,
+        userAgent: req.get("user-agent"),
+      });
+
       res.json({
         message: `Upload complete: ${uploadResults.successful} successful, ${uploadResults.failed} failed`,
         ...uploadResults
@@ -848,6 +875,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
       
       await db.insert(analysisResults).values(analysisResultsData);
+
+      // Log user activity - resume ranking
+      await storage.createUserActivity({
+        userId: req.session.userId!,
+        action: "resume_ranking",
+        details: {
+          totalResumes: scores.length,
+          analysisId: analysis.id,
+          jobPromptLength: jobPrompt.length,
+        },
+        ipAddress: req.ip,
+        userAgent: req.get("user-agent"),
+      });
 
       res.json({ totalResumes: scores.length, analysisId: analysis.id });
     } catch (error) {
